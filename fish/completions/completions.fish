@@ -1,0 +1,13 @@
+complete -c tomato -n "__fish_use_subcommand" -s f -l format -d 'How to format the output: json, toml, bash, or raw' -r
+complete -c tomato -n "__fish_use_subcommand" -s h -l help -d 'Print help information'
+complete -c tomato -n "__fish_use_subcommand" -s V -l version -d 'Print version information'
+complete -c tomato -n "__fish_use_subcommand" -s b -l backup -d 'Back up the file to <filepath>.bak if we write a new version. This option is ignored when we\'re operating on stdin'
+complete -c tomato -n "__fish_use_subcommand" -f -a "get" -d 'Get the value of a key from the given file'
+complete -c tomato -n "__fish_use_subcommand" -f -a "set" -d 'Set a key to the given value, returning the previous value if one existed'
+complete -c tomato -n "__fish_use_subcommand" -f -a "rm" -d 'Delete a key from the given file, returning the previous value if one existed'
+complete -c tomato -n "__fish_use_subcommand" -f -a "completions" -d 'Generate completions for the named shell'
+complete -c tomato -n "__fish_use_subcommand" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
+complete -c tomato -n "__fish_seen_subcommand_from get" -s h -l help -d 'Print help information'
+complete -c tomato -n "__fish_seen_subcommand_from set" -s h -l help -d 'Print help information'
+complete -c tomato -n "__fish_seen_subcommand_from rm" -s h -l help -d 'Print help information'
+complete -c tomato -n "__fish_seen_subcommand_from completions" -s h -l help -d 'Print help information'
