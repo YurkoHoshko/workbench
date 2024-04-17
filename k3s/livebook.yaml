@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: livebook
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: livebook-deployment
+  namespace: livebook
+spec:
+  selector:
+    matchLabels:
+      app: livebook
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: livebook
+    spec:
+      containers:
+       - name: livebook
+         image: ghcr.io/livebook-dev/livebook:latest
+         ports:
+           - containerPort: 8080
+           - containerPort: 8081
+         env:
+           - name: LIVEBOOK_PORT
+             value: "8080"
+           - name: LIVEBOOK_IFRAME_PORT
+             value: "8081"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: livebook-service
+  namespace: livebook
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: "http"
+    - port: 8081
+      targetPort: 8081
+      protocol: TCP
+      name: "iframe"
+  selector:
+    app: livebook
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: livebook
+  namespace: livebook
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - host: livebook.overengineerordietrying.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: livebook-service
+            port:
+              number: 8080
+      - path: /iframe
+        pathType: Prefix
+        backend:
+          service:
+            name: livebook-service
+            port:
+              number: 8081
+  tls:
+  - hosts:
+    -  livebook.overengineerordietrying.com # Change by your domain
+    secretName: letsencrypt-livebook-tls
