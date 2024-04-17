@@ -17,7 +17,10 @@
 
 ### How?
 
-- [ ] Base Docker image with all of the setup
+
+#### Toolbox
+
+- [x] Base Docker image with all of the setup
   - [x] `tmux` + config
   - [x] `fish` + config 
   - [x] `helix` + config
@@ -30,10 +33,26 @@
   - [x] `ripgrep`
   - [x] `fzf`
   - [x] `jq`
-2. Problem-specific Docker images with the necessary installations
+  - [x] `openssh`
+  - [x] `ansible`
+- [ ] Problem-specific Docker images with the necessary installations
   - [ ] Elixir / Gleam dev environment
   - [ ] C# learning environment
 
+#### Workbench
+
+- [ ] Terraform provisioning of infrastructure
+- [ ] Ansible provisioning of k3s cluster
+  - [x] Install k3s
+  - [x] Export KUBECONFIG
+  - [x] Install k9s
+  - [ ] Setup ArgoCD
+  - [ ] Provision via ArgoCD GitOps
+    - [ ] Livebook
+    - [ ] Toolbox
+    - [ ] Blog
+    - [ ] Certbot
+    - [ ] VPN
 
 ### Commands
 

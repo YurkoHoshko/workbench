@@ -20,6 +20,9 @@ RUN pacman -Syu --noconfirm \
     jq \
     less \
     which \
+    ansible \
+    ansible-language-server \
+    openssh \
     && echo "Done!"
 
 # Set fish as the default shell
