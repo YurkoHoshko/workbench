@@ -10,17 +10,19 @@
 #   workbench report
 #   workbench dashboard
 #   workbench doctor
+#   workbench clone <url>
 
 use lib/utils.nu *
 use lib/config.nu *
+use lib/completions.nu
 
 # Initialize workbench for current git repository
 export def "workbench init" [
-    --layout: string       # Layout file to use
-    --agent: string        # Agent to use (default: opencode)
-    --layouts-dir: string  # Layouts directory
-    --base-ref: string     # Base ref for worktrees (default: origin/main)
-    --root: string         # Override workbench root
+    --layout: string@completions.layout-files  # Layout file to use
+    --agent: string@completions.agents         # Agent to use (default: opencode)
+    --layouts-dir: string                      # Layouts directory
+    --base-ref: string                         # Base ref for worktrees (default: origin/main)
+    --root: string                             # Override workbench root
 ] {
     use commands/init.nu
     init --layout $layout --agent $agent --layouts-dir $layouts_dir --base-ref $base_ref --root $root
@@ -28,12 +30,12 @@ export def "workbench init" [
 
 # Create a new workbench
 export def "workbench create" [
-    name: string           # Workbench name (e.g., ABC-123)
-    --from: string         # Override base ref
-    --layout: string       # Override layout
-    --agent: string        # Override agent
-    --no-attach            # Don't attach after creation
-    --no-session           # Don't create zellij session
+    name: string                               # Workbench name (e.g., ABC-123)
+    --from: string                             # Override base ref
+    --layout: string@completions.layout-files  # Override layout
+    --agent: string@completions.agents         # Override agent
+    --no-attach                                # Don't attach after creation
+    --no-session                               # Don't create zellij session
 ] {
     use commands/create.nu
     create $name --from $from --layout $layout --agent $agent --no-attach=$no_attach --no-session=$no_session
@@ -50,7 +52,7 @@ export def "workbench list" [
 
 # Attach to a workbench session
 export def "workbench attach" [
-    name?: string          # Workbench name (optional, inferred from CWD)
+    name?: string@completions.workbench-name  # Workbench name (optional, inferred from CWD)
 ] {
     use commands/attach.nu
     attach $name
@@ -58,10 +60,10 @@ export def "workbench attach" [
 
 # Remove a workbench
 export def "workbench rm" [
-    name: string           # Workbench name to remove
-    --branch               # Also delete the branch
-    --force                # Force removal
-    --yes (-y)             # Skip confirmation
+    name: string@completions.workbench-name  # Workbench name to remove
+    --branch                                 # Also delete the branch
+    --force                                  # Force removal
+    --yes (-y)                               # Skip confirmation
 ] {
     use commands/rm.nu
     rm $name --branch=$branch --force=$force --yes=$yes
@@ -69,9 +71,9 @@ export def "workbench rm" [
 
 # Generate workbench report
 export def "workbench report" [
-    --name: string         # Workbench name (optional, inferred from CWD)
-    --format: string       # Output format: md or json (default: md)
-    --output: string       # Output file path
+    --name: string@completions.workbench-name   # Workbench name (optional, inferred from CWD)
+    --format: string@completions.report-formats # Output format: md or json (default: md)
+    --output: string                            # Output file path
 ] {
     use commands/report.nu
     report --name $name --format $format --output $output
@@ -79,7 +81,7 @@ export def "workbench report" [
 
 # Start/attach dashboard session
 export def "workbench dashboard" [
-    --layout: string       # Override layout
+    --layout: string@completions.layout-files  # Override layout
 ] {
     use commands/dashboard.nu
     dashboard --layout $layout
@@ -92,6 +94,20 @@ export def "workbench doctor" [
 ] {
     use commands/doctor.nu
     doctor --fix=$fix --json=$json
+}
+
+# Clone a repository and initialize workbench
+export def "workbench clone" [
+    url: string                                # Git repository URL
+    --name: string                             # Override repo name
+    --layout: string@completions.layout-files  # Layout file to use
+    --agent: string@completions.agents         # Agent to use
+    --base-ref: string                         # Base ref (default: auto-detect)
+    --root: string                             # Override workbench root
+    --workbench: string                        # Create initial workbench with this name
+] {
+    use commands/clone.nu
+    clone $url --name $name --layout $layout --agent $agent --base-ref $base_ref --root $root --workbench $workbench
 }
 
 # Show dependency status
