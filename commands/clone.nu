@@ -91,13 +91,6 @@ export def main [
     save-repo-config $repo_name $repo_config $wb_root
     print $"Saved repo config (base_ref: ($detected_base_ref))"
     
-    # Run mise trust if available
-    let has_mise = (which mise | is-not-empty)
-    if $has_mise {
-        print "Running mise trust..."
-        cd $clone_path
-        do { ^mise trust } | complete | ignore
-    }
     
     print $"Workbench initialized for ($repo_name)"
     print $"Main worktree: ($clone_path)"
@@ -111,10 +104,6 @@ export def main [
         
         add-worktree $clone_path $wb_path $branch $detected_base_ref
         
-        if $has_mise {
-            cd $wb_path
-            do { ^mise trust } | complete | ignore
-        }
         
         print $"Created workbench: ($workbench)"
         print $"To attach: workbench attach ($workbench)"

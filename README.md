@@ -13,7 +13,7 @@ use /path/to/workbench/mod.nu *
 ## Requirements
 
 - **Required**: `git`, `zellij`
-- **Optional**: `fzf` (interactive mode), `mise` (runtime management), `task` (taskwarrior)
+- **Optional**: `fzf` (interactive mode), `task` (taskwarrior)
 
 Check dependencies:
 ```nu

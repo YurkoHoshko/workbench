@@ -7,7 +7,6 @@ export def check-deps []: nothing -> table<name: string, required: bool, found: 
         { name: "zellij", required: true }
         { name: "fzf", required: false }
         { name: "task", required: false }
-        { name: "mise", required: false }
     ]
     
     $deps | each {|dep|

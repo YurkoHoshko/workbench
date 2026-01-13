@@ -43,12 +43,6 @@ export def main [
     add-worktree $repo_root $wt_path $branch_name $base_ref
     print $"Created worktree at ($wt_path)"
 
-    if (which mise | is-not-empty) {
-        let result = (do { mise trust $wt_path } | complete)
-        if $result.exit_code == 0 {
-            print "Ran mise trust"
-        }
-    }
 
     if $no_session {
         print $"Worktree created. To start session: workbench attach ($name)"

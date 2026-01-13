@@ -84,13 +84,6 @@ export def main [
     add-worktree-existing $repo_root $wt_path $review_branch
     print $"Created review worktree at ($wt_path)"
     
-    if (which mise | is-not-empty) {
-        let result = (do { mise trust $wt_path } | complete)
-        if $result.exit_code == 0 {
-            print "Ran mise trust"
-        }
-    }
-    
     let session_name = (format-session-name $repo_name $wb_name)
     let layouts_dir = (expand-path $config.layouts_dir)
     let env_vars = {

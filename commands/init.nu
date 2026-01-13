@@ -85,12 +85,6 @@ export def main [
         print "Main worktree already exists"
     }
 
-    let has_mise = (which mise | is-not-empty)
-    if $has_mise {
-        print "Running mise trust in main worktree..."
-        cd $main_path
-        ^mise trust
-    }
 
     print $"Workbench initialized for ($repo_name)"
 }

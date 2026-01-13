@@ -198,7 +198,6 @@ Initializes `~/.workbench/<repo-name>` and repo config. Creates canonical `main`
 
    * path: `WT_ROOT/<repo-name>/main`
    * if missing: `git worktree add <main_path> <base_ref>`
-7. Run `mise trust` in `main` worktree (interactive)
 
 **Flags**
 
@@ -232,10 +231,7 @@ Creates a new workbench: worktree + branch + Zellij session + attach.
 3. Create worktree:
 
    * `git worktree add -b <branch> <path> <base_ref>`
-4. Run:
-
-   * `mise trust` in new worktree
-5. Start zellij session:
+4. Start zellij session:
 
    * session: `<repo-name>/<worktree-name>`
    * cwd = worktree path
@@ -449,7 +445,7 @@ On startup:
 
 * require: `git`, `zellij`
 * if missing: actionable error
-* optional: `fzf`, `task`, `mise`
+* optional: `fzf`, `task`
 
 ---
 
