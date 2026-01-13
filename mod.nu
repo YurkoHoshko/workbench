@@ -22,10 +22,9 @@ export def "workbench init" [
     --agent: string@agents         # Agent to use (default: opencode)
     --layouts-dir: string                      # Layouts directory
     --base-ref: string                         # Base ref for worktrees (default: origin/main)
-    --root: string                             # Override workbench root
 ] {
     use commands/init.nu
-    init --layout $layout --agent $agent --layouts-dir $layouts_dir --base-ref $base_ref --root $root
+    init --layout $layout --agent $agent --layouts-dir $layouts_dir --base-ref $base_ref
 }
 
 # Create a new workbench
@@ -103,11 +102,10 @@ export def "workbench clone" [
     --layout: string@layout-files  # Layout file to use
     --agent: string@agents         # Agent to use
     --base-ref: string                         # Base ref (default: auto-detect)
-    --root: string                             # Override workbench root
     --workbench: string                        # Create initial workbench with this name
 ] {
     use commands/clone.nu
-    clone $url --name $name --layout $layout --agent $agent --base-ref $base_ref --root $root --workbench $workbench
+    clone $url --name $name --layout $layout --agent $agent --base-ref $base_ref --workbench $workbench
 }
 
 # Show dependency status

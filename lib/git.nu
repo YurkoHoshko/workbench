@@ -66,7 +66,7 @@ export def add-worktree [
 ]: nothing -> nothing {
     let result = (do { git -C $repo_root worktree add -b $branch $path $base_ref } | complete)
     if $result.exit_code != 0 {
-        error make {
+        error make --unspanned {
             msg: $"Failed to create worktree: ($result.stderr)"
         }
     }
@@ -80,7 +80,7 @@ export def add-worktree-existing [
 ]: nothing -> nothing {
     let result = (do { git -C $repo_root worktree add $path $branch } | complete)
     if $result.exit_code != 0 {
-        error make {
+        error make --unspanned {
             msg: $"Failed to create worktree: ($result.stderr)"
         }
     }
@@ -94,7 +94,7 @@ export def add-worktree-detached [
 ]: nothing -> nothing {
     let result = (do { git -C $repo_root worktree add --detach $path $ref } | complete)
     if $result.exit_code != 0 {
-        error make {
+        error make --unspanned {
             msg: $"Failed to create worktree: ($result.stderr)"
         }
     }
@@ -105,7 +105,7 @@ export def remove-worktree [repo_root: string, path: string, force: bool = false
     let args = if $force { ["worktree", "remove", "--force", $path] } else { ["worktree", "remove", $path] }
     let result = (do { git -C $repo_root ...$args } | complete)
     if $result.exit_code != 0 {
-        error make {
+        error make --unspanned {
             msg: $"Failed to remove worktree: ($result.stderr)"
         }
     }
@@ -116,7 +116,7 @@ export def delete-branch [repo_root: string, branch: string, force: bool = false
     let flag = if $force { "-D" } else { "-d" }
     let result = (do { git -C $repo_root branch $flag $branch } | complete)
     if $result.exit_code != 0 {
-        error make {
+        error make --unspanned {
             msg: $"Failed to delete branch: ($result.stderr)"
         }
     }
@@ -126,7 +126,7 @@ export def delete-branch [repo_root: string, branch: string, force: bool = false
 export def prune-worktrees [repo_root: string]: nothing -> nothing {
     let result = (do { git -C $repo_root worktree prune } | complete)
     if $result.exit_code != 0 {
-        error make {
+        error make --unspanned {
             msg: $"Failed to prune worktrees: ($result.stderr)"
         }
     }

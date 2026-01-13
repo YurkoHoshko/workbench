@@ -85,7 +85,7 @@ def resolve-worktree [name?: string]: nothing -> record<repo_name: string, wb_na
         let wt_path = (get-worktree-path $wb_root $repo_name $name)
         
         if not ($wt_path | path exists) {
-            error make {
+            error make --unspanned {
                 msg: $"Worktree '($name)' not found"
                 help: "Use 'workbench list' to see available workbenches"
             }
@@ -108,7 +108,7 @@ def resolve-worktree [name?: string]: nothing -> record<repo_name: string, wb_na
             let wt_path = ([$wt_base, $wb_name] | path join)
             { repo_name: $repo_name, wb_name: $wb_name, wt_path: $wt_path, config: $config }
         } else {
-            error make {
+            error make --unspanned {
                 msg: "Could not determine workbench from current directory"
                 help: "Use --name to specify the workbench, or run from within a workbench directory"
             }

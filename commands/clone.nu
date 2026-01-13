@@ -11,7 +11,6 @@ export def main [
     --layout: string         # Layout file to use
     --agent: string          # Agent to use
     --base-ref: string       # Base ref (default: origin/main or origin/master)
-    --root: string           # Override workbench root
     --workbench: string      # Create initial workbench with this name
 ]: nothing -> nothing {
     assert-deps
@@ -27,14 +26,14 @@ export def main [
     assert-valid-name $repo_name
     
     let global_config = (load-global-config)
-    let wb_root = if $root != null { expand-path $root } else { expand-path $global_config.workbench_root }
+    let wb_root = (expand-path $global_config.workbench_root)
     
     let repo_dir = ([$wb_root, $repo_name] | path join)
     let clone_path = ([$repo_dir, "main"] | path join)
     
     # Check if already exists
     if ($clone_path | path exists) {
-        error make {
+        error make --unspanned {
             msg: $"Workbench already exists at ($clone_path)"
             help: "Use `workbench attach` to connect to existing workbench"
         }
@@ -49,7 +48,7 @@ export def main [
     # Clone the repository
     let clone_result = (do { git clone $url $clone_path } | complete)
     if $clone_result.exit_code != 0 {
-        error make {
+        error make --unspanned {
             msg: $"Failed to clone repository: ($clone_result.stderr)"
         }
     }

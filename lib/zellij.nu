@@ -1,5 +1,18 @@
 # Zellij session management for workbench CLI
 
+# Conventional name for workbench-specific layout
+const LOCAL_LAYOUT_NAME = "workbench.kdl"
+
+# Resolve layout path: prefer local workbench.kdl if exists, otherwise use configured layout
+export def resolve-layout-path [cwd: string, layout: string, layouts_dir: string]: nothing -> string {
+    let local_layout = ([$cwd, $LOCAL_LAYOUT_NAME] | path join)
+    if ($local_layout | path exists) {
+        $local_layout
+    } else {
+        [$layouts_dir, $layout] | path join
+    }
+}
+
 # List all zellij sessions
 export def list-sessions []: nothing -> list<string> {
     let result = (do { zellij list-sessions -s } | complete)
@@ -23,7 +36,7 @@ export def start-session [
     layouts_dir: string,
     env_vars: record
 ]: nothing -> nothing {
-    let layout_path = ([$layouts_dir, $layout] | path join)
+    let layout_path = (resolve-layout-path $cwd $layout $layouts_dir)
     
     # Build environment export commands
     let env_exports = ($env_vars | transpose k v | each {|e| $"export ($e.k)='($e.v)'"} | str join "; ")
@@ -47,7 +60,7 @@ export def attach-session [session_name: string]: nothing -> nothing {
 export def kill-session [session_name: string]: nothing -> nothing {
     let result = (do { zellij kill-session $session_name } | complete)
     if $result.exit_code != 0 {
-        error make {
+        error make --unspanned {
             msg: $"Failed to kill session: ($result.stderr)"
         }
     }
@@ -69,7 +82,7 @@ export def ensure-and-attach [
     
     if $in_zellij {
         # Use zellij-switch plugin to switch sessions from inside zellij
-        let layout_path = ([$layouts_dir, $layout] | path join)
+        let layout_path = (resolve-layout-path $cwd $layout $layouts_dir)
         let layout_arg = if ($layout_path | path exists) {
             $"--layout ($layout_path)"
         } else {
@@ -82,7 +95,7 @@ export def ensure-and-attach [
         ^zellij pipe --plugin $ZELLIJ_SWITCH_PLUGIN -- $pipe_args
     } else {
         if not (session-exists $session_name) {
-            let layout_path = ([$layouts_dir, $layout] | path join)
+            let layout_path = (resolve-layout-path $cwd $layout $layouts_dir)
             
             # Set environment variables
             $env_vars | transpose k v | each {|e| 

@@ -19,7 +19,7 @@ export def main [
     let repo_name = (get-repo-name $repo_root)
 
     if not (repo-initialized $repo_name) {
-        error make {
+        error make --unspanned {
             msg: $"Repository '($repo_name)' is not initialized"
             help: "Run 'workbench init' first"
         }
@@ -31,7 +31,7 @@ export def main [
     let session_name = (format-session-name $repo_name $name)
 
     if not ($wt_path | path exists) {
-        error make {
+        error make --unspanned {
             msg: $"Workbench '($name)' not found at ($wt_path)"
         }
     }

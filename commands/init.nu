@@ -10,7 +10,6 @@ export def main [
     --agent: string         # Agent to use (e.g., opencode)
     --layouts-dir: string   # Directory containing layout files
     --base-ref: string      # Base ref for main worktree (default: origin/main)
-    --root: string          # Override workbench root directory
 ]: nothing -> nothing {
     assert-deps
 
@@ -18,7 +17,7 @@ export def main [
     let repo_name = (get-repo-name $repo_root)
 
     let global_config = (load-global-config)
-    let wb_root = if $root != null { expand-path $root } else { expand-path $global_config.workbench_root }
+    let wb_root = (expand-path $global_config.workbench_root)
 
     let repo_dir = ([$wb_root, $repo_name] | path join)
     let workbench_dir = ([$repo_dir, ".workbench"] | path join)

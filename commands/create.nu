@@ -21,7 +21,7 @@ export def main [
     let repo_name = (get-repo-name $repo_root)
 
     if not (repo-initialized $repo_name) {
-        error make {
+        error make --unspanned {
             msg: $"Repository '($repo_name)' is not initialized"
             help: "Run `workbench init` first"
         }

@@ -33,7 +33,7 @@ export def main [
     
     # Check if repo is initialized
     if not (repo-initialized $repo_name) {
-        error make {
+        error make --unspanned {
             msg: $"Repository '($repo_name)' is not initialized"
             help: "Run 'workbench init' first"
         }
@@ -55,7 +55,7 @@ export def main [
             # Open interactive list
             let workbenches = (list-workbenches $git_root $wb_root $repo_name)
             if ($workbenches | is-empty) {
-                error make {
+                error make --unspanned {
                     msg: "No workbenches found"
                     help: "Create one with 'workbench create <name>'"
                 }
@@ -68,9 +68,15 @@ export def main [
             } | str join "\n")
             
             # Run fzf
+            if (which fzf | is-empty) {
+                error make --unspanned {
+                    msg: "fzf is required for interactive selection"
+                    help: "Install fzf or provide workbench name: workbench attach <name>"
+                }
+            }
             let result = (do { echo $fzf_input | fzf --ansi --prompt="Select workbench: " } | complete)
             if $result.exit_code != 0 {
-                error make { msg: "No workbench selected" }
+                error make --unspanned { msg: "No workbench selected" }
             }
             
             # Parse selection (format: "● name branch")
@@ -86,7 +92,7 @@ export def main [
     
     # Check if worktree folder exists
     if not ($wt_path | path exists) {
-        error make {
+        error make --unspanned {
             msg: $"Worktree folder does not exist: ($wt_path)"
             help: "The worktree may have been removed. Check 'git worktree list'"
         }

@@ -20,7 +20,7 @@ export def check-deps []: nothing -> table<name: string, required: bool, found: 
 export def assert-deps []: nothing -> nothing {
     let missing = (check-deps | where {|r| $r.required and (not $r.found)} | get name)
     if ($missing | is-not-empty) {
-        error make {
+        error make --unspanned {
             msg: $"Missing required dependencies: ($missing | str join ', ')"
             help: "Please install the missing tools and try again"
         }
@@ -35,7 +35,7 @@ export def validate-name [name: string]: nothing -> bool {
 # Assert workbench name is valid
 export def assert-valid-name [name: string]: nothing -> nothing {
     if not (validate-name $name) {
-        error make {
+        error make --unspanned {
             msg: $"Invalid workbench name: '($name)'"
             help: "Name must match [A-Za-z0-9._-]+ (no slashes or special characters)"
         }
@@ -82,7 +82,7 @@ export def format-branch-name [prefix: string, wb_name: string]: nothing -> stri
 export def get-git-root []: nothing -> string {
     let result = (do { git rev-parse --show-toplevel } | complete)
     if $result.exit_code != 0 {
-        error make {
+        error make --unspanned {
             msg: "Not in a git repository"
             help: "Run this command from within a git repository"
         }
