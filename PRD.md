@@ -147,11 +147,11 @@ Default:
 
 Session name:
 
-* `<repo-name>/<worktree-name>`
+* `<repo-name>_<worktree-name>` (underscore separator; Zellij doesn't allow `/` in session names)
 
 Dashboard session:
 
-* `<repo-name>/dashboard`
+* `<repo-name>_dashboard`
 
 ### 4.2 Environment passed to layout
 

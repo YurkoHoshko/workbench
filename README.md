@@ -58,6 +58,7 @@ workbench doctor --fix
 |---------|-------------|
 | `workbench init` | Initialize workbench for current git repo |
 | `workbench create <name>` | Create new worktree + zellij session |
+| `workbench clone <url>` | Clone repo and initialize workbench |
 | `workbench list` | List workbenches with session status |
 | `workbench attach [name]` | Attach to session (resurrects if needed) |
 | `workbench rm <name>` | Remove workbench |
@@ -65,6 +66,14 @@ workbench doctor --fix
 | `workbench dashboard` | Start/attach dashboard session |
 | `workbench doctor` | Detect and fix inconsistencies |
 | `workbench deps` | Show dependency status |
+
+## Shell Completions
+
+Tab completions work automatically for:
+- Workbench names (dynamic, based on current repo)
+- Layout files (from `~/.config/zellij/layouts/`)
+- Agents (`opencode`, `amp`, `claude`, `aider`, `cursor`)
+- Report formats (`md`, `json`)
 
 ## Configuration
 
@@ -105,7 +114,7 @@ workbench doctor --fix
 
 ## Zellij Integration
 
-Sessions are named `<repo-name>/<worktree-name>`. Environment variables passed to layouts:
+Sessions are named `<repo-name>_<worktree-name>` (underscore separator). Environment variables passed to layouts:
 
 - `WORKBENCH_REPO` - repository name
 - `WORKBENCH_NAME` - workbench name

@@ -14,12 +14,12 @@
 
 use lib/utils.nu *
 use lib/config.nu *
-use lib/completions.nu
+use lib/completions.nu *
 
 # Initialize workbench for current git repository
 export def "workbench init" [
-    --layout: string@completions.layout-files  # Layout file to use
-    --agent: string@completions.agents         # Agent to use (default: opencode)
+    --layout: string@layout-files  # Layout file to use
+    --agent: string@agents         # Agent to use (default: opencode)
     --layouts-dir: string                      # Layouts directory
     --base-ref: string                         # Base ref for worktrees (default: origin/main)
     --root: string                             # Override workbench root
@@ -32,8 +32,8 @@ export def "workbench init" [
 export def "workbench create" [
     name: string                               # Workbench name (e.g., ABC-123)
     --from: string                             # Override base ref
-    --layout: string@completions.layout-files  # Override layout
-    --agent: string@completions.agents         # Override agent
+    --layout: string@layout-files  # Override layout
+    --agent: string@agents         # Override agent
     --no-attach                                # Don't attach after creation
     --no-session                               # Don't create zellij session
 ] {
@@ -52,7 +52,7 @@ export def "workbench list" [
 
 # Attach to a workbench session
 export def "workbench attach" [
-    name?: string@completions.workbench-name  # Workbench name (optional, inferred from CWD)
+    name?: string@workbench-name  # Workbench name (optional, inferred from CWD)
 ] {
     use commands/attach.nu
     attach $name
@@ -60,7 +60,7 @@ export def "workbench attach" [
 
 # Remove a workbench
 export def "workbench rm" [
-    name: string@completions.workbench-name  # Workbench name to remove
+    name: string@workbench-name  # Workbench name to remove
     --branch                                 # Also delete the branch
     --force                                  # Force removal
     --yes (-y)                               # Skip confirmation
@@ -71,8 +71,8 @@ export def "workbench rm" [
 
 # Generate workbench report
 export def "workbench report" [
-    --name: string@completions.workbench-name   # Workbench name (optional, inferred from CWD)
-    --format: string@completions.report-formats # Output format: md or json (default: md)
+    --name: string@workbench-name   # Workbench name (optional, inferred from CWD)
+    --format: string@report-formats # Output format: md or json (default: md)
     --output: string                            # Output file path
 ] {
     use commands/report.nu
@@ -81,7 +81,7 @@ export def "workbench report" [
 
 # Start/attach dashboard session
 export def "workbench dashboard" [
-    --layout: string@completions.layout-files  # Override layout
+    --layout: string@layout-files  # Override layout
 ] {
     use commands/dashboard.nu
     dashboard --layout $layout
@@ -100,8 +100,8 @@ export def "workbench doctor" [
 export def "workbench clone" [
     url: string                                # Git repository URL
     --name: string                             # Override repo name
-    --layout: string@completions.layout-files  # Layout file to use
-    --agent: string@completions.agents         # Agent to use
+    --layout: string@layout-files  # Layout file to use
+    --agent: string@agents         # Agent to use
     --base-ref: string                         # Base ref (default: auto-detect)
     --root: string                             # Override workbench root
     --workbench: string                        # Create initial workbench with this name

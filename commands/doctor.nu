@@ -42,8 +42,8 @@ def detect-issues [repo_name: string, wb_root: string, repo_root: string]: nothi
         []
     }
     
-    # Get zellij sessions for this repo
-    let sessions = (list-sessions) | where $it =~ $"^($repo_name)/"
+    # Get zellij sessions for this repo (session format: repo_name_wb_name)
+    let sessions = (list-sessions) | where $it =~ $"^($repo_name)_"
     
     # Check 1: Worktree in git but folder missing
     for wt in $wb_worktrees {
@@ -72,7 +72,7 @@ def detect-issues [repo_name: string, wb_root: string, repo_root: string]: nothi
     
     # Check 3: Session exists but folder missing
     for session in $sessions {
-        let wb_name = ($session | str replace $"($repo_name)/" "")
+        let wb_name = ($session | str replace $"($repo_name)_" "")
         let expected_path = ([$wt_base, $wb_name] | path join)
         if not ($expected_path | path exists) {
             $issues = ($issues | append {

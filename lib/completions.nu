@@ -26,12 +26,12 @@ def get-workbench-names []: nothing -> list<string> {
 }
 
 # Completion for workbench names
-export def "nu-complete workbench-name" [] {
+export def workbench-name [] {
     get-workbench-names | each {|name| { value: $name, description: "workbench" } }
 }
 
 # Completion for layout files
-export def "nu-complete layout-files" [] {
+export def layout-files [] {
     let layouts_dir = "~/.config/zellij/layouts" | path expand
     if ($layouts_dir | path exists) {
         ls $layouts_dir 
@@ -44,12 +44,12 @@ export def "nu-complete layout-files" [] {
 }
 
 # Completion for agents
-export def "nu-complete agents" [] {
+export def agents [] {
     ["opencode", "amp", "claude", "aider", "cursor"] | each {|a| { value: $a, description: "agent" } }
 }
 
 # Completion for report formats
-export def "nu-complete report-formats" [] {
+export def report-formats [] {
     [
         { value: "md", description: "Markdown" }
         { value: "json", description: "JSON" }
