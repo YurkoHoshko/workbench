@@ -55,13 +55,22 @@ export def main [
         }
     }
 
+    # Auto-detect default branch if not specified
+    let detected_base_ref = if $base_ref != null {
+        $base_ref
+    } else {
+        detect-default-branch $repo_root
+    }
+
     let repo_config = {
         repo_root: $repo_root
-        base_ref: (if $base_ref != null { $base_ref } else { "origin/main" })
+        base_ref: $detected_base_ref
         layout: $selected_layout
         layouts_dir: $layouts_dir_resolved
         agent: (if $agent != null { $agent } else { $global_config.agent })
     }
+    
+    print $"Using base ref: ($detected_base_ref)"
 
     save-repo-config $repo_name $repo_config $wb_root
     print $"Saved repo config to ($workbench_dir)/config.json"

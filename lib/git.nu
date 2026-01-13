@@ -174,3 +174,21 @@ export def branch-exists [repo_root: string, branch: string]: nothing -> bool {
 export def fetch [repo_root: string]: nothing -> nothing {
     do { git -C $repo_root fetch } | complete | ignore
 }
+
+# Detect default remote branch (origin/main or origin/master)
+export def detect-default-branch [repo_root: string]: nothing -> string {
+    # Try symbolic-ref first
+    let remote_head = (do { git -C $repo_root symbolic-ref refs/remotes/origin/HEAD } | complete)
+    if $remote_head.exit_code == 0 {
+        return ($remote_head.stdout | str trim | str replace "refs/remotes/" "")
+    }
+    
+    # Fallback: check if origin/main exists
+    let has_main = (do { git -C $repo_root rev-parse --verify origin/main } | complete)
+    if $has_main.exit_code == 0 {
+        return "origin/main"
+    }
+    
+    # Fallback: origin/master
+    "origin/master"
+}

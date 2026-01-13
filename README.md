@@ -59,13 +59,20 @@ workbench doctor --fix
 | `workbench init` | Initialize workbench for current git repo |
 | `workbench create <name>` | Create new worktree + zellij session |
 | `workbench clone <url>` | Clone repo and initialize workbench |
-| `workbench list` | List workbenches with session status |
+| `workbench list` | List all workbenches across all repos |
 | `workbench attach [name]` | Attach to session (resurrects if needed) |
 | `workbench rm <name>` | Remove workbench |
 | `workbench report` | Generate workbench report |
 | `workbench dashboard` | Start/attach dashboard session |
 | `workbench doctor` | Detect and fix inconsistencies |
 | `workbench deps` | Show dependency status |
+
+`workbench list` works globally from any directory and shows workbenches from all initialized repos:
+```
+● myrepo/feature-1    wb/feature-1
+○ myrepo/feature-2    wb/feature-2
+● otherrepo/fix-123   wb/fix-123
+```
 
 ## Shell Completions
 
