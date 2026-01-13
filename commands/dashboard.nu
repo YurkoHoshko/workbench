@@ -5,9 +5,7 @@ use ../lib/config.nu *
 use ../lib/zellij.nu *
 
 # Start/attach dashboard session for repo
-export def main [
-    --layout: string  # Override dashboard layout
-]: nothing -> nothing {
+export def main []: nothing -> nothing {
     assert-deps
 
     let repo_root = (get-git-root)
@@ -21,26 +19,28 @@ export def main [
     }
 
     let config = (load-repo-config $repo_name)
-    let layouts_dir = (expand-path $config.layouts_dir)
 
-    # Determine layout: flag > dashboard_layout config > fallback to dashboard.kdl
-    let dashboard_layout = if $layout != null {
-        $layout
-    } else if ("dashboard_layout" in $config) and ($config.dashboard_layout != null) {
+    # Determine layout: dashboard_layout config > fallback to dashboard.kdl
+    let dashboard_layout = if ("dashboard_layout" in $config) and ($config.dashboard_layout != null) {
         $config.dashboard_layout
     } else {
         "dashboard.kdl"
     }
 
-    let session_name = (format-session-name $repo_name "dashboard")
     let wb_root = (expand-path $config.workbench_root)
     let cwd = [$wb_root, $repo_name] | path join
 
-    let env_vars = {
-        WORKBENCH_REPO: $repo_name
-        WORKBENCH_NAME: "dashboard"
-        WORKBENCH_PATH: $cwd
+    let env_vars = (build-workbench-env $repo_name "dashboard" $cwd "" $config.base_ref $config.agent)
+    let layout_path = (layout-path-if-exists $dashboard_layout $config.layouts_dir)
+
+    if not (session-exists $repo_name "dashboard") {
+        start $repo_name "dashboard" $cwd $layout_path $env_vars
     }
 
-    ensure-and-attach $session_name $cwd $dashboard_layout $layouts_dir $env_vars
+    if (in-zellij) {
+        let plugin_path = (install-switch-plugin (get-zellij-plugin-dir))
+        switch $repo_name "dashboard" $cwd $layout_path $plugin_path
+    } else {
+        attach $repo_name "dashboard"
+    }
 }

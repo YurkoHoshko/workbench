@@ -2,17 +2,8 @@
 
 use ../lib/utils.nu *
 use ../lib/config.nu *
-use ../lib/git.nu *
+use ../lib/worktrees.nu *
 use ../lib/zellij.nu *
-
-# Issue types
-def issue-types [] {
-    [
-        { type: "missing_folder", severity: "error", fixable: true, description: "Worktree registered in git but folder missing" }
-        { type: "orphan_folder", severity: "warning", fixable: false, description: "Folder exists but not in git worktrees" }
-        { type: "orphan_session", severity: "warning", fixable: true, description: "Session exists but folder missing" }
-    ]
-}
 
 # Detect all issues for a repo
 def detect-issues [repo_name: string, wb_root: string, repo_root: string]: nothing -> table<type: string, name: string, detail: string, fixable: bool> {
@@ -95,8 +86,10 @@ def fix-issue [issue: record, repo_name: string, wb_root: string, repo_root: str
             { success: true, message: $"Pruned worktree ($issue.name)" }
         }
         "orphan_session" => {
-            let session_name = (format-session-name $repo_name $issue.name)
-            kill-session-if-exists $session_name
+            if (session-exists $repo_name $issue.name) {
+                stop $repo_name $issue.name
+            }
+            let session_name = (session-name $repo_name $issue.name)
             { success: true, message: $"Killed orphan session ($session_name)" }
         }
         _ => {
@@ -126,7 +119,6 @@ export def main [
         return
     }
     
-    let config = (load-repo-config $repo_name $wb_root)
     let issues = (detect-issues $repo_name $wb_root $repo_root)
     
     if $json {

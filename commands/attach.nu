@@ -2,7 +2,7 @@
 
 use ../lib/utils.nu *
 use ../lib/config.nu *
-use ../lib/git.nu *
+use ../lib/worktrees.nu *
 use ../lib/zellij.nu *
 
 # Infer workbench name from CWD if inside a worktree
@@ -63,7 +63,7 @@ export def main [
             
             # Build fzf input
             let fzf_input = ($workbenches | each {|wb|
-                let status = (get-session-status (format-session-name $repo_name $wb.name))
+                let status = if (session-exists $repo_name $wb.name) { "●" } else { "○" }
                 $"($status) ($wb.name) ($wb.branch)"
             } | str join "\n")
             
@@ -98,25 +98,25 @@ export def main [
         }
     }
     
-    # Get session name
-    let session_name = (format-session-name $repo_name $wb_name)
-    
     # Get branch name for this worktree
     let workbenches = (list-workbenches $git_root $wb_root $repo_name)
     let wb_info = ($workbenches | where name == $wb_name | first)
     let branch = if ($wb_info | is-not-empty) { $wb_info.branch } else { "" }
     
     # Build env vars for session resurrection
-    let env_vars = {
-        WORKBENCH_REPO: $repo_name
-        WORKBENCH_NAME: $wb_name
-        WORKBENCH_PATH: $wt_path
-        WORKBENCH_BRANCH: $branch
-        WORKBENCH_BASE_REF: $config.base_ref
-        WORKBENCH_AGENT: $config.agent
-    }
+    let env_vars = (build-workbench-env $repo_name $wb_name $wt_path $branch $config.base_ref $config.agent)
     
     # Attach or resurrect
-    let layouts_dir = (expand-path $config.layouts_dir)
-    ensure-and-attach $session_name $wt_path $config.layout $layouts_dir $env_vars
+    let layout_path = (layout-path-if-exists $config.layout $config.layouts_dir)
+    let session_exists = (session-exists $repo_name $wb_name)
+    if not $session_exists {
+        start $repo_name $wb_name $wt_path $layout_path $env_vars
+    }
+
+    if (in-zellij) {
+        let plugin_path = (install-switch-plugin (get-zellij-plugin-dir))
+        switch $repo_name $wb_name $wt_path $layout_path $plugin_path
+    } else {
+        attach $repo_name $wb_name
+    }
 }

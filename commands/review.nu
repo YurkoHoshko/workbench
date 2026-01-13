@@ -3,6 +3,7 @@
 use ../lib/utils.nu *
 use ../lib/config.nu *
 use ../lib/git.nu *
+use ../lib/worktrees.nu *
 use ../lib/zellij.nu *
 
 # Create a review workbench for inspecting a branch
@@ -65,18 +66,18 @@ export def main [
     # Check if already exists
     if ($wt_path | path exists) {
         print $"Review workbench already exists, attaching..."
-        let session_name = (format-session-name $repo_name $wb_name)
-        let layouts_dir = (expand-path $config.layouts_dir)
-        let env_vars = {
-            WORKBENCH_REPO: $repo_name
-            WORKBENCH_NAME: $wb_name
-            WORKBENCH_PATH: $wt_path
-            WORKBENCH_BRANCH: $review_branch
-            WORKBENCH_BASE_REF: $config.base_ref
-            WORKBENCH_AGENT: $config.agent
-            WORKBENCH_REVIEW: "true"
+        let env_vars = (build-workbench-env $repo_name $wb_name $wt_path $review_branch $config.base_ref $config.agent { WORKBENCH_REVIEW: "true" })
+        let layout_path = (layout-path-if-exists "review.kdl" $config.layouts_dir)
+        if not (session-exists $repo_name $wb_name) {
+            start $repo_name $wb_name $wt_path $layout_path $env_vars
         }
-        ensure-and-attach $session_name $wt_path "review.kdl" $layouts_dir $env_vars
+
+        if (in-zellij) {
+            let plugin_path = (install-switch-plugin (get-zellij-plugin-dir))
+            switch $repo_name $wb_name $wt_path $layout_path $plugin_path
+        } else {
+            attach $repo_name $wb_name
+        }
         return
     }
     
@@ -84,17 +85,16 @@ export def main [
     add-worktree-existing $repo_root $wt_path $review_branch
     print $"Created review worktree at ($wt_path)"
     
-    let session_name = (format-session-name $repo_name $wb_name)
-    let layouts_dir = (expand-path $config.layouts_dir)
-    let env_vars = {
-        WORKBENCH_REPO: $repo_name
-        WORKBENCH_NAME: $wb_name
-        WORKBENCH_PATH: $wt_path
-        WORKBENCH_BRANCH: $review_branch
-        WORKBENCH_BASE_REF: $config.base_ref
-        WORKBENCH_AGENT: $config.agent
-        WORKBENCH_REVIEW: "true"
+    let env_vars = (build-workbench-env $repo_name $wb_name $wt_path $review_branch $config.base_ref $config.agent { WORKBENCH_REVIEW: "true" })
+    let layout_path = (layout-path-if-exists "review.kdl" $config.layouts_dir)
+    if not (session-exists $repo_name $wb_name) {
+        start $repo_name $wb_name $wt_path $layout_path $env_vars
     }
-    
-    ensure-and-attach $session_name $wt_path "review.kdl" $layouts_dir $env_vars
+
+    if (in-zellij) {
+        let plugin_path = (install-switch-plugin (get-zellij-plugin-dir))
+        switch $repo_name $wb_name $wt_path $layout_path $plugin_path
+    } else {
+        attach $repo_name $wb_name
+    }
 }

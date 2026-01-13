@@ -94,3 +94,24 @@ export def list-layouts [layouts_dir: string]: nothing -> list<string> {
         []
     }
 }
+
+# Resolve a layout path from name or explicit path
+export def resolve-layout-path [layout: string, layouts_dir: string]: nothing -> string {
+    let layout_is_path = ($layout | str starts-with "~") or ($layout | str starts-with "/") or ($layout | str contains "/")
+    let expanded_layouts_dir = (expand-path $layouts_dir)
+    if $layout_is_path {
+        expand-path $layout
+    } else {
+        [$expanded_layouts_dir, $layout] | path join
+    }
+}
+
+# Resolve layout path only if it exists
+export def layout-path-if-exists [layout: string, layouts_dir: string]: nothing -> string {
+    let resolved = (resolve-layout-path $layout $layouts_dir)
+    if ($resolved | path exists) {
+        $resolved
+    } else {
+        null
+    }
+}

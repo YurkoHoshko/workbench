@@ -3,6 +3,7 @@
 use ../lib/utils.nu *
 use ../lib/config.nu *
 use ../lib/git.nu *
+use ../lib/worktrees.nu *
 
 # Clone a repository and initialize workbench for it
 export def main [
@@ -59,19 +60,7 @@ export def main [
     let detected_base_ref = if $base_ref != null {
         $base_ref
     } else {
-        # Try to detect the default branch
-        let remote_head = (do { git -C $clone_path symbolic-ref refs/remotes/origin/HEAD } | complete)
-        if $remote_head.exit_code == 0 {
-            $remote_head.stdout | str trim | str replace "refs/remotes/" ""
-        } else {
-            # Fallback: check if origin/main or origin/master exists
-            let has_main = (do { git -C $clone_path rev-parse --verify origin/main } | complete)
-            if $has_main.exit_code == 0 {
-                "origin/main"
-            } else {
-                "origin/master"
-            }
-        }
+        detect-default-branch $clone_path
     }
     
     # Determine layout

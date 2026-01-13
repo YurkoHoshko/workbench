@@ -3,6 +3,7 @@
 use ../lib/utils.nu *
 use ../lib/config.nu *
 use ../lib/git.nu *
+use ../lib/worktrees.nu *
 
 # Initialize workbench for current git repository
 export def main [

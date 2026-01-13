@@ -110,9 +110,9 @@ export def main [
     let diff_stats = (get-diff-stats $wt_path $branch $config.base_ref)
     let git_status = (get-git-status $wt_path)
     let last_commit = (get-last-commit $wt_path)
-    let session_name = (format-session-name $repo_name $wb_name)
+    let session_name = (session-name $repo_name $wb_name)
     let session_active = if (which zellij | is-not-empty) {
-        session-exists $session_name
+        session-exists $repo_name $wb_name
     } else {
         false
     }

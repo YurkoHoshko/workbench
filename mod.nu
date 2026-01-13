@@ -32,13 +32,12 @@ export def "workbench create" [
     name: string                               # Workbench name (e.g., ABC-123)
     --from: string                             # Override base ref
     --branch: string                           # Explicit branch name
-    --layout: string@layout-files  # Override layout
     --agent: string@agents         # Override agent
     --no-attach                                # Don't attach after creation
     --no-session                               # Don't create zellij session
 ] {
     use commands/create.nu
-    create $name --from $from --branch $branch --layout $layout --agent $agent --no-attach=$no_attach --no-session=$no_session
+    create $name --from $from --branch $branch --agent $agent --no-attach=$no_attach --no-session=$no_session
 }
 
 # List workbenches
@@ -81,10 +80,9 @@ export def "workbench report" [
 
 # Start/attach dashboard session
 export def "workbench dashboard" [
-    --layout: string@layout-files  # Override layout
 ] {
     use commands/dashboard.nu
-    dashboard --layout $layout
+    dashboard
 }
 
 # Check for and fix inconsistencies

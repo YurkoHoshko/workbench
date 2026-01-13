@@ -3,6 +3,7 @@
 use ../lib/utils.nu *
 use ../lib/config.nu *
 use ../lib/git.nu *
+use ../lib/worktrees.nu *
 use ../lib/zellij.nu *
 
 # Generate workbench report (markdown/json)
@@ -32,8 +33,8 @@ export def main [
     let changed_files = (get-changed-files $wt_path $base_ref)
     
     # Session status
-    let session_name = (format-session-name $repo_name $wb_name)
-    let session_active = (session-exists $session_name)
+    let session_name = (session-name $repo_name $wb_name)
+    let session_active = (session-exists $repo_name $wb_name)
     
     # Taskwarrior tasks (optional)
     let tasks = (get-taskwarrior-tasks $repo_name $wb_name)

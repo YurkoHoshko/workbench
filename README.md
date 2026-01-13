@@ -133,12 +133,6 @@ Sessions are named `<repo-name>_<worktree-name>` (underscore separator). Environ
 - `WORKBENCH_BASE_REF` - base ref
 - `WORKBENCH_AGENT` - agent name
 
-### Workbench-specific layouts
+### Session switching plugin
 
-You can define a custom Zellij layout for a specific workbench by placing a `workbench.kdl` file in the worktree root. When present, it takes precedence over the configured layout.
-
-```
-~/.workbench/<repo>/<worktree>/
-  workbench.kdl    # optional, overrides default layout
-  ...
-```
+When attaching from inside Zellij, `workbench` uses the `zellij-switch` plugin and installs it to `~/.config/zellij/plugins/zellij-switch.wasm` if it is missing.

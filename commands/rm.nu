@@ -3,6 +3,7 @@
 use ../lib/utils.nu *
 use ../lib/config.nu *
 use ../lib/git.nu *
+use ../lib/worktrees.nu *
 use ../lib/zellij.nu *
 
 # Remove a workbench: kill session, remove worktree, optionally delete branch
@@ -28,7 +29,7 @@ export def main [
     let config = (load-repo-config $repo_name)
     let wb_root = (expand-path $config.workbench_root)
     let wt_path = (get-worktree-path $wb_root $repo_name $name)
-    let session_name = (format-session-name $repo_name $name)
+    let session_name = (session-name $repo_name $name)
 
     if not ($wt_path | path exists) {
         error make --unspanned {
@@ -45,9 +46,9 @@ export def main [
     }
 
     # Kill session if exists
-    if (session-exists $session_name) {
+    if (session-exists $repo_name $name) {
         print $"Killing session: ($session_name)"
-        kill-session $session_name
+        stop $repo_name $name
     }
 
     # Remove worktree
