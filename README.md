@@ -132,6 +132,7 @@ Sessions are named `<repo-name>_<worktree-name>` (underscore separator). Environ
 - `WORKBENCH_BRANCH` - branch name
 - `WORKBENCH_BASE_REF` - base ref
 - `WORKBENCH_AGENT` - agent name
+- `WORKBENCH_PROMPT` - initial prompt passed during `workbench create`
 
 ### Workbench-specific layouts
 

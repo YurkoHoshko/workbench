@@ -12,6 +12,7 @@ export def main [
     --branch: string                # Explicit branch name (overrides prefix + name)
     --layout: string                # Override layout
     --agent: string                 # Override agent
+    --prompt: string                # Initial agent prompt to pass to layout
     --no-attach                     # Don't attach to session
     --no-session                    # Create worktree only, no zellij session
 ]: nothing -> nothing {
@@ -58,6 +59,11 @@ export def main [
         WORKBENCH_BRANCH: $branch_name
         WORKBENCH_BASE_REF: $base_ref
         WORKBENCH_AGENT: $config.agent
+    }
+    let env_vars = if $prompt != null {
+        $env_vars | insert WORKBENCH_PROMPT $prompt
+    } else {
+        $env_vars
     }
 
     if $no_attach {
