@@ -57,6 +57,17 @@ export def list-workbenches [
     | compact
 }
 
+# Normalize base refs like origin/main to avoid ambiguity
+export def normalize-base-ref [base_ref: string]: nothing -> string {
+    if ($base_ref | str starts-with "refs/") {
+        $base_ref
+    } else if ($base_ref | str starts-with "origin/") {
+        $"refs/remotes/($base_ref)"
+    } else {
+        $base_ref
+    }
+}
+
 # Add a new worktree with a new branch
 export def add-worktree [
     repo_root: string,
@@ -64,7 +75,8 @@ export def add-worktree [
     branch: string,
     base_ref: string
 ]: nothing -> nothing {
-    let result = (do { git -C $repo_root worktree add -b $branch $path $base_ref } | complete)
+    let normalized = (normalize-base-ref $base_ref)
+    let result = (do { git -C $repo_root worktree add -b $branch $path $normalized } | complete)
     if $result.exit_code != 0 {
         error make --unspanned {
             msg: $"Failed to create worktree: ($result.stderr)"
@@ -92,7 +104,8 @@ export def add-worktree-detached [
     path: string,
     ref: string
 ]: nothing -> nothing {
-    let result = (do { git -C $repo_root worktree add --detach $path $ref } | complete)
+    let normalized = (normalize-base-ref $ref)
+    let result = (do { git -C $repo_root worktree add --detach $path $normalized } | complete)
     if $result.exit_code != 0 {
         error make --unspanned {
             msg: $"Failed to create worktree: ($result.stderr)"
@@ -134,7 +147,8 @@ export def prune-worktrees [repo_root: string]: nothing -> nothing {
 
 # Get commits ahead/behind base
 export def get-diff-stats [repo_root: string, branch: string, base_ref: string]: nothing -> record<ahead: int, behind: int> {
-    let result = (do { git -C $repo_root rev-list --left-right --count $"($base_ref)...($branch)" } | complete)
+    let normalized = (normalize-base-ref $base_ref)
+    let result = (do { git -C $repo_root rev-list --left-right --count $"($normalized)...($branch)" } | complete)
     if $result.exit_code != 0 {
         return { ahead: 0, behind: 0 }
     }
@@ -148,7 +162,8 @@ export def get-diff-stats [repo_root: string, branch: string, base_ref: string]:
 
 # Get diffstat summary
 export def get-diffstat [repo_root: string, base_ref: string]: nothing -> string {
-    let result = (do { git -C $repo_root diff --stat $base_ref } | complete)
+    let normalized = (normalize-base-ref $base_ref)
+    let result = (do { git -C $repo_root diff --stat $normalized } | complete)
     if $result.exit_code != 0 {
         return ""
     }
@@ -157,7 +172,8 @@ export def get-diffstat [repo_root: string, base_ref: string]: nothing -> string
 
 # Get list of changed files
 export def get-changed-files [repo_root: string, base_ref: string]: nothing -> list<string> {
-    let result = (do { git -C $repo_root diff --name-only $base_ref } | complete)
+    let normalized = (normalize-base-ref $base_ref)
+    let result = (do { git -C $repo_root diff --name-only $normalized } | complete)
     if $result.exit_code != 0 {
         return []
     }
