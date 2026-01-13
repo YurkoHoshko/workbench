@@ -9,6 +9,7 @@ use ../lib/zellij.nu *
 export def main [
     name: string                    # Workbench name (e.g., ABC-123)
     --from: string                  # Override base_ref
+    --branch: string                # Explicit branch name (overrides prefix + name)
     --layout: string                # Override layout
     --agent: string                 # Override agent
     --no-attach                     # Don't attach to session
@@ -36,10 +37,10 @@ export def main [
 
     let wb_root = (expand-path $config.workbench_root)
     let wt_path = (get-worktree-path $wb_root $repo_name $name)
-    let branch = (format-branch-name $config.branch_prefix $name)
+    let branch_name = if $branch != null { $branch } else { format-branch-name $config.branch_prefix $name }
     let base_ref = $config.base_ref
 
-    add-worktree $repo_root $wt_path $branch $base_ref
+    add-worktree $repo_root $wt_path $branch_name $base_ref
     print $"Created worktree at ($wt_path)"
 
     if (which mise | is-not-empty) {
@@ -60,7 +61,7 @@ export def main [
         WORKBENCH_REPO: $repo_name
         WORKBENCH_NAME: $name
         WORKBENCH_PATH: $wt_path
-        WORKBENCH_BRANCH: $branch
+        WORKBENCH_BRANCH: $branch_name
         WORKBENCH_BASE_REF: $base_ref
         WORKBENCH_AGENT: $config.agent
     }

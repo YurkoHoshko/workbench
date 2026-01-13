@@ -31,13 +31,14 @@ export def "workbench init" [
 export def "workbench create" [
     name: string                               # Workbench name (e.g., ABC-123)
     --from: string                             # Override base ref
+    --branch: string                           # Explicit branch name
     --layout: string@layout-files  # Override layout
     --agent: string@agents         # Override agent
     --no-attach                                # Don't attach after creation
     --no-session                               # Don't create zellij session
 ] {
     use commands/create.nu
-    create $name --from $from --layout $layout --agent $agent --no-attach=$no_attach --no-session=$no_session
+    create $name --from $from --branch $branch --layout $layout --agent $agent --no-attach=$no_attach --no-session=$no_session
 }
 
 # List workbenches
@@ -106,6 +107,31 @@ export def "workbench clone" [
 ] {
     use commands/clone.nu
     clone $url --name $name --layout $layout --agent $agent --base-ref $base_ref --workbench $workbench
+}
+
+# Show current workbench status
+export def "workbench status" [
+    --json (-j)  # Output as JSON
+] {
+    use commands/status.nu
+    status --json=$json
+}
+
+# Create a review workbench for a branch
+export def "workbench review" [
+    branch?: string@branch-names  # Branch to review (default: current)
+] {
+    use commands/review.nu
+    review $branch
+}
+
+# Open/edit workbench configuration
+export def "workbench config" [
+    --global (-g)  # Edit global config
+    --show (-s)    # Print config instead of opening
+] {
+    use commands/config.nu
+    config --global=$global --show=$show
 }
 
 # Show dependency status

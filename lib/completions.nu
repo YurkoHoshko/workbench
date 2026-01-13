@@ -55,3 +55,21 @@ export def report-formats [] {
         { value: "json", description: "JSON" }
     ]
 }
+
+# Completion for branch names (local + remote)
+export def branch-names [] {
+    let result = (do { git branch -a --format='%(refname:short)' } | complete)
+    if $result.exit_code != 0 {
+        return []
+    }
+    
+    $result.stdout 
+    | lines 
+    | where $it != "" 
+    | each {|b| 
+        # Clean up remote branch names (origin/branch -> branch for display)
+        let clean = ($b | str replace "origin/" "")
+        { value: $b, description: $clean }
+    }
+    | uniq-by value
+}

@@ -65,6 +65,9 @@ workbench doctor --fix
 | `workbench report` | Generate workbench report |
 | `workbench dashboard` | Start/attach dashboard session |
 | `workbench doctor` | Detect and fix inconsistencies |
+| `workbench status` | Show current workbench status |
+| `workbench review [branch]` | Create review workbench for a branch |
+| `workbench config` | Open repo/global configuration |
 | `workbench deps` | Show dependency status |
 
 `workbench list` works globally from any directory and shows workbenches from all initialized repos:
