@@ -108,7 +108,7 @@ export def main [
     let env_vars = (build-workbench-env $repo_name $wb_name $wt_path $branch $config.base_ref $config.agent)
     
     # Attach or resurrect
-    let layout_path = (layout-path-if-exists $config.layout $config.layouts_dir)
+    let layout_path = (layout-path-if-exists $config.layout)
     let session_name = (session-name $repo_name $wb_name)
     let session_exists = (session-exists $session_name)
     if not $session_exists {
@@ -116,7 +116,7 @@ export def main [
     }
 
     if (in-zellij) {
-        let plugin_path = (install-switch-plugin (get-zellij-plugin-dir))
+        let plugin_path = ([(get-zellij-plugin-dir), "zellij-switch.wasm"] | path join)
         switch $session_name $wt_path $layout_path $plugin_path
     } else {
         attach $session_name

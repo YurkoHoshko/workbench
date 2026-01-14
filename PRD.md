@@ -28,7 +28,7 @@ Core philosophy:
 2. One command to create a workbench and drop into its Zellij session.
 3. FZF-powered navigation across workbenches with attach/delete.
 4. Session resurrection and consistency checks (`doctor`).
-5. Dashboard + report for visibility, driven by git state.
+5. Consistent session handling and navigation across workbenches.
 
 ### Non-goals (v0.1)
 
@@ -54,7 +54,6 @@ Structure:
   <repo-name>/
     .workbench/
       config.json
-    main/                 # canonical base worktree
     <worktree-name>/      # feature worktree
     <worktree-name>/
 ```
@@ -69,7 +68,7 @@ Purpose:
 
 * defaults for all repos
 * location of WT_ROOT
-* default agent + layouts dir + default layout
+* default agent + default layout
 
 **Schema**
 
@@ -77,7 +76,6 @@ Purpose:
 {
   "workbench_root": "~/.workbench",
   "agent": "opencode",
-  "layouts_dir": "~/.config/zellij/layouts",
   "layout": "default.kdl"
 }
 ```
@@ -101,10 +99,7 @@ Purpose:
   "repo_root": "/abs/path/to/repo",
   "base_ref": "origin/main",
   "agent": "opencode",
-  "layouts_dir": "~/.config/zellij/layouts",
-  "layout": "phoenix.kdl",
-  "dashboard_layout": "dashboard.kdl",
-  "branch_prefix": "wb/"
+  "layout": "phoenix.kdl"
 }
 ```
 
@@ -136,8 +131,7 @@ Validation:
 
 Default:
 
-* branch = `<branch_prefix><worktree-name>`
-* example: `wb/ABC-123`
+* branch = `<worktree-name>` (unless explicitly provided)
 
 ---
 
@@ -148,10 +142,6 @@ Default:
 Session name:
 
 * `<repo-name>_<worktree-name>` (underscore separator; Zellij doesn't allow `/` in session names)
-
-Dashboard session:
-
-* `<repo-name>_dashboard`
 
 ### 4.2 Environment passed to layout
 
@@ -174,7 +164,7 @@ Implementation note:
 
 ### 5.1 `workbench init`
 
-Initializes `~/.workbench/<repo-name>` and repo config. Creates canonical `main` worktree.
+Initializes `~/.workbench/<repo-name>` and repo config.
 
 **Behavior**
 
@@ -187,30 +177,25 @@ Initializes `~/.workbench/<repo-name>` and repo config. Creates canonical `main`
    * `WT_ROOT/<repo-name>/.workbench/`
 4. Prompt for layout selection:
 
-   * list layouts from `layouts_dir`
+   * list layouts from `~/.config/zellij/layouts`
    * accept `--layout`
 5. Write repo config with:
 
    * repo_root
    * base_ref (default `origin/main`)
-   * layout, layouts_dir, agent
-6. Ensure canonical main worktree exists:
-
-   * path: `WT_ROOT/<repo-name>/main`
-   * if missing: `git worktree add <main_path> <base_ref>`
+   * layout, agent
+6. Do not create a canonical main worktree; use the main repo checkout.
 
 **Flags**
 
 * `--layout <layout>`
 * `--agent <agent>`
-* `--layouts-dir <dir>`
 * `--base-ref <ref>`
-* `--root <path>` override WT_ROOT
 
 **Acceptance**
 
 * idempotent
-* main worktree exists after init
+* repo config exists after init
 
 ---
 
@@ -227,13 +212,13 @@ Creates a new workbench: worktree + branch + Zellij session + attach.
 2. Compute:
 
    * worktree path: `WT_ROOT/<repo-name>/<worktree-name>`
-   * branch: `branch_prefix + worktree-name`
+   * branch: `worktree-name` (unless `--branch` is provided)
 3. Create worktree:
 
    * `git worktree add -b <branch> <path> <base_ref>`
 4. Start zellij session:
 
-   * session: `<repo-name>/<worktree-name>`
+   * session: `<repo-name>_<worktree-name>`
    * cwd = worktree path
    * layout from config
 6. Attach
@@ -241,7 +226,6 @@ Creates a new workbench: worktree + branch + Zellij session + attach.
 **Flags**
 
 * `--from <ref>` overrides base_ref
-* `--layout <layout>` override layout
 * `--agent <agent>` override agent
 * `--no-attach`
 * `--no-session` (worktree only)
@@ -283,12 +267,10 @@ Uses `fzf`:
 
 * entry: `<icon> <worktree-name> <branch>`
 * Enter: attach
-* `ctrl-d`: delete selected (`workbench rm <name>`)
-* Preview: `workbench report --name <name>`
 
 **Acceptance**
 
-* interactive attach/delete work reliably
+* interactive attach works reliably
 
 ---
 
@@ -315,53 +297,7 @@ Attach to a workbench session; resurrect if needed.
 
 ---
 
-### 5.5 `workbench dashboard`
-
-Start/attach dashboard session for repo.
-
-**Behavior**
-
-* session name: `<repo-name>/dashboard`
-* layout: `dashboard_layout` if configured else fallback to `dashboard.kdl` in layouts_dir
-* dashboard layout displays multiple workbenches
-
-  * can call `workbench list --json` or `workbench report` via `watch`
-
-**Flags**
-
-* `--layout <layout>` override
-
----
-
-### 5.6 `workbench report [--name <worktree-name>]`
-
-Generate report (markdown/json).
-
-**Behavior**
-
-* Resolve worktree (by name or CWD)
-* Show:
-
-  * repo-name / worktree-name
-  * branch
-  * base_ref
-  * git stats:
-
-    * commits ahead/behind base
-    * diffstat summary
-    * changed files list (truncate)
-  * session status (active/inactive)
-  * taskwarrior tasks (optional; see below)
-
-**Flags**
-
-* `--name <name>`
-* `--format md|json`
-* `--output <file>`
-
----
-
-### 5.7 `workbench rm <worktree-name>`
+### 5.5 `workbench rm <worktree-name>`
 
 Remove worktree; keep branch by default.
 
@@ -392,7 +328,7 @@ Remove worktree; keep branch by default.
 
 ---
 
-### 5.8 `workbench doctor`
+### 5.6 `workbench doctor`
 
 Detect and fix inconsistencies.
 
@@ -409,37 +345,7 @@ Detect and fix inconsistencies.
 
 ---
 
-## 6. Taskwarrior Integration (Optional but supported)
-
-Since you said “yes but not sure”: keep it minimal and non-magical.
-
-### Convention
-
-* Taskwarrior project name:
-
-  * `<repo-name>:<worktree-name>`
-    Example:
-* `backend:ABC-123`
-
-### Display
-
-* report/dashboard show:
-
-  * `task project:backend:ABC-123 status:pending`
-
-### Creation
-
-`workbench create` prints a hint after attach:
-
-* `task add project:<repo>:<name> "..."`
-
-Optional flag later:
-
-* `workbench create <name> --task "Bootstrap <name>"`
-
----
-
-## 7. Dependency checks
+## 6. Dependency checks
 
 On startup:
 
@@ -449,18 +355,16 @@ On startup:
 
 ---
 
-## 8. Acceptance Criteria / MVP Definition
+## 7. Acceptance Criteria / MVP Definition
 
 MVP is complete when:
 
-1. `init` sets up repo config + main worktree.
+1. `init` sets up repo config.
 2. `create` spawns worktree + zellij session and attaches.
-3. `list --interactive` lets you attach/delete.
+3. `list --interactive` lets you attach.
 4. `attach` resurrects sessions.
 5. `rm` removes worktree safely.
 6. `doctor` identifies broken state; `--fix` prunes safe cases.
-7. `dashboard` starts a dashboard layout.
-8. `report` outputs correct git diff summary vs base.
+7. Optional task integration does not interfere with normal operations.
 
 ---
-

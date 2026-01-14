@@ -56,7 +56,6 @@ workbench doctor --fix
 | `workbench attach [name]` | Attach to session (resurrects if needed) |
 | `workbench rm <name>` | Remove workbench |
 | `workbench doctor` | Detect and fix inconsistencies |
-| `workbench review [branch]` | Create review workbench for a branch |
 | `workbench config` | Open repo/global configuration |
 | `workbench deps` | Show dependency status |
 
@@ -82,7 +81,6 @@ Tab completions work automatically for:
 {
   "workbench_root": "~/.workbench",
   "agent": "opencode",
-  "layouts_dir": "~/.config/zellij/layouts",
   "layout": "default.kdl"
 }
 ```
@@ -94,8 +92,7 @@ Tab completions work automatically for:
   "repo_root": "/abs/path/to/repo",
   "base_ref": "origin/main",
   "agent": "opencode",
-  "layout": "phoenix.kdl",
-  "branch_prefix": "wb/"
+  "layout": "phoenix.kdl"
 }
 ```
 
@@ -123,4 +120,4 @@ Sessions are named `<repo-name>_<worktree-name>` (underscore separator). Environ
 
 ### Session switching plugin
 
-When attaching from inside Zellij, `workbench` uses the `zellij-switch` plugin and installs it to `~/.config/zellij/plugins/zellij-switch.wasm` if it is missing.
+`workbench init` installs the `zellij-switch` plugin to `~/.config/zellij/plugins/zellij-switch.wasm` for session switching inside Zellij.

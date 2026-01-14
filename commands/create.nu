@@ -10,7 +10,7 @@ use ../lib/zellij.nu *
 export def main [
     name: string                    # Workbench name (e.g., ABC-123)
     --from: string                  # Override base_ref
-    --branch: string                # Explicit branch name (overrides prefix + name)
+    --branch: string                # Explicit branch name
     --agent: string                 # Override agent
     --no-attach                     # Don't attach to session
     --no-session                    # Create worktree only, no zellij session
@@ -36,7 +36,7 @@ export def main [
 
     let wb_root = (expand-path $config.workbench_root)
     let wt_path = (get-worktree-path $wb_root $repo_name $name)
-    let branch_name = if $branch != null { $branch } else { branch-name $config.branch_prefix $name }
+    let branch_name = if $branch != null { $branch } else { $name }
     let base_ref = $config.base_ref
 
     add-worktree $repo_root $wt_path $branch_name $base_ref
@@ -49,7 +49,7 @@ export def main [
     }
 
     let session_name = (session-name $repo_name $name)
-    let layout_path = (layout-path-if-exists $config.layout $config.layouts_dir)
+    let layout_path = (layout-path-if-exists $config.layout)
     let env_vars = (build-workbench-env $repo_name $name $wt_path $branch_name $base_ref $config.agent)
 
     if $no_attach {
@@ -63,7 +63,7 @@ export def main [
         }
 
         if $in_zellij {
-            let plugin_path = (install-switch-plugin (get-zellij-plugin-dir))
+            let plugin_path = ([(get-zellij-plugin-dir), "zellij-switch.wasm"] | path join)
             switch $session_name $wt_path $layout_path $plugin_path
         } else {
             attach $session_name

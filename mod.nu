@@ -17,18 +17,17 @@ use lib/completions.nu *
 export def "workbench init" [
     --layout: string@layout-files  # Layout file to use
     --agent: string@agents         # Agent to use (default: opencode)
-    --layouts-dir: string                      # Layouts directory
     --base-ref: string@branch-names            # Base ref for worktrees (default: origin/main)
 ] {
     use commands/init.nu
-    init --layout $layout --agent $agent --layouts-dir $layouts_dir --base-ref $base_ref
+    init --layout $layout --agent $agent --base-ref $base_ref
 }
 
 # Create a new workbench
 export def "workbench create" [
     name: string                               # Workbench name (e.g., ABC-123)
     --from: string@branch-names                # Override base ref
-    --branch: string                           # Explicit branch name
+    --branch: string@branch-names              # Explicit branch name
     --agent: string@agents         # Override agent
     --no-attach                                # Don't attach after creation
     --no-session                               # Don't create zellij session
@@ -72,14 +71,6 @@ export def "workbench doctor" [
 ] {
     use commands/doctor.nu
     doctor --fix=$fix --json=$json
-}
-
-# Create a review workbench for a branch
-export def "workbench review" [
-    branch?: string@branch-names  # Branch to review (default: current)
-] {
-    use commands/review.nu
-    review $branch
 }
 
 # Open/edit workbench configuration

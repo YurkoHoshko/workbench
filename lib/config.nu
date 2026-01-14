@@ -7,7 +7,6 @@ export def default-global-config []: nothing -> record {
     {
         workbench_root: "~/.workbench"
         agent: "opencode"
-        layouts_dir: "~/.config/zellij/layouts"
         layout: "default.kdl"
     }
 }
@@ -16,7 +15,6 @@ export def default-global-config []: nothing -> record {
 export def default-repo-config []: nothing -> record {
     {
         base_ref: "origin/main"
-        branch_prefix: "wb/"
     }
 }
 
@@ -85,9 +83,9 @@ export def apply-overrides [config: record, overrides: record]: nothing -> recor
     }
 }
 
-# List available layouts from layouts_dir
-export def list-layouts [layouts_dir: string]: nothing -> list<string> {
-    let expanded = (expand-path $layouts_dir)
+# List available layouts from the default zellij layouts directory
+export def list-layouts []: nothing -> list<string> {
+    let expanded = (expand-path "~/.config/zellij/layouts")
     if ($expanded | path exists) {
         ls $expanded | where name =~ '\.kdl$' | get name | each { path basename }
     } else {
@@ -96,9 +94,9 @@ export def list-layouts [layouts_dir: string]: nothing -> list<string> {
 }
 
 # Resolve a layout path from name or explicit path
-export def resolve-layout-path [layout: string, layouts_dir: string]: nothing -> string {
+export def resolve-layout-path [layout: string]: nothing -> string {
     let layout_is_path = ($layout | str starts-with "~") or ($layout | str starts-with "/") or ($layout | str contains "/")
-    let expanded_layouts_dir = (expand-path $layouts_dir)
+    let expanded_layouts_dir = (expand-path "~/.config/zellij/layouts")
     if $layout_is_path {
         expand-path $layout
     } else {
@@ -107,8 +105,8 @@ export def resolve-layout-path [layout: string, layouts_dir: string]: nothing ->
 }
 
 # Resolve layout path only if it exists
-export def layout-path-if-exists [layout: string, layouts_dir: string]: nothing -> string {
-    let resolved = (resolve-layout-path $layout $layouts_dir)
+export def layout-path-if-exists [layout: string]: nothing -> string {
+    let resolved = (resolve-layout-path $layout)
     if ($resolved | path exists) {
         $resolved
     } else {

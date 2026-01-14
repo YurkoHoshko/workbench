@@ -58,12 +58,11 @@ export def main [
 
     # Optionally delete branch
     if $branch {
-        let branch_name = (branch-name $config.branch_prefix $name)
-        if (branch-exists $repo_root $branch_name) {
-            print $"Deleting branch: ($branch_name)"
-            delete-branch $repo_root $branch_name $force
+        if (branch-exists $repo_root $name) {
+            print $"Deleting branch: ($name)"
+            delete-branch $repo_root $name $force
         } else {
-            print $"Branch '($branch_name)' not found, skipping"
+            print $"Branch '($name)' not found, skipping"
         }
     }
 

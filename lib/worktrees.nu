@@ -75,35 +75,6 @@ export def add-worktree [
     }
 }
 
-# Add worktree for existing branch
-export def add-worktree-existing [
-    repo_root: string,
-    path: string,
-    branch: string
-]: nothing -> nothing {
-    let result = (do { git -C $repo_root worktree add $path $branch } | complete)
-    if $result.exit_code != 0 {
-        error make --unspanned {
-            msg: $"Failed to create worktree: ($result.stderr)"
-        }
-    }
-}
-
-# Add worktree in detached HEAD mode (for main worktree tracking a ref)
-export def add-worktree-detached [
-    repo_root: string,
-    path: string,
-    ref: string
-]: nothing -> nothing {
-    let normalized = (normalize-base-ref $ref)
-    let result = (do { git -C $repo_root worktree add --detach $path $normalized } | complete)
-    if $result.exit_code != 0 {
-        error make --unspanned {
-            msg: $"Failed to create worktree: ($result.stderr)"
-        }
-    }
-}
-
 # Remove a worktree
 export def remove-worktree [repo_root: string, path: string, force: bool = false]: nothing -> nothing {
     let args = if $force { ["worktree", "remove", "--force", $path] } else { ["worktree", "remove", $path] }
