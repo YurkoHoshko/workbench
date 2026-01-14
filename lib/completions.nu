@@ -48,14 +48,6 @@ export def agents [] {
     ["opencode", "amp", "claude", "aider", "cursor"] | each {|a| { value: $a, description: "agent" } }
 }
 
-# Completion for report formats
-export def report-formats [] {
-    [
-        { value: "md", description: "Markdown" }
-        { value: "json", description: "JSON" }
-    ]
-}
-
 # Completion for branch names (local + remote)
 export def branch-names [] {
     let result = (do { git branch -a --format='%(refname:short)' } | complete)

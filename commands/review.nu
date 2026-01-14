@@ -4,6 +4,7 @@ use ../lib/utils.nu *
 use ../lib/config.nu *
 use ../lib/git.nu *
 use ../lib/worktrees.nu *
+use ../lib/names.nu *
 use ../lib/zellij.nu *
 
 # Create a review workbench for inspecting a branch
@@ -13,7 +14,7 @@ export def main [
     assert-deps
     
     let repo_root = (get-git-root)
-    let repo_name = (get-repo-name $repo_root)
+    let repo_name = (repo-name $repo_root)
     
     if not (repo-initialized $repo_name) {
         error make --unspanned {
@@ -68,15 +69,16 @@ export def main [
         print $"Review workbench already exists, attaching..."
         let env_vars = (build-workbench-env $repo_name $wb_name $wt_path $review_branch $config.base_ref $config.agent { WORKBENCH_REVIEW: "true" })
         let layout_path = (layout-path-if-exists "review.kdl" $config.layouts_dir)
-        if not (session-exists $repo_name $wb_name) {
-            start $repo_name $wb_name $wt_path $layout_path $env_vars
+        let session_name = (session-name $repo_name $wb_name)
+        if not (session-exists $session_name) {
+            start $session_name $wt_path $layout_path $env_vars
         }
 
         if (in-zellij) {
             let plugin_path = (install-switch-plugin (get-zellij-plugin-dir))
-            switch $repo_name $wb_name $wt_path $layout_path $plugin_path
+            switch $session_name $wt_path $layout_path $plugin_path
         } else {
-            attach $repo_name $wb_name
+            attach $session_name
         }
         return
     }
@@ -87,14 +89,15 @@ export def main [
     
     let env_vars = (build-workbench-env $repo_name $wb_name $wt_path $review_branch $config.base_ref $config.agent { WORKBENCH_REVIEW: "true" })
     let layout_path = (layout-path-if-exists "review.kdl" $config.layouts_dir)
-    if not (session-exists $repo_name $wb_name) {
-        start $repo_name $wb_name $wt_path $layout_path $env_vars
+    let session_name = (session-name $repo_name $wb_name)
+    if not (session-exists $session_name) {
+        start $session_name $wt_path $layout_path $env_vars
     }
 
     if (in-zellij) {
         let plugin_path = (install-switch-plugin (get-zellij-plugin-dir))
-        switch $repo_name $wb_name $wt_path $layout_path $plugin_path
+        switch $session_name $wt_path $layout_path $plugin_path
     } else {
-        attach $repo_name $wb_name
+        attach $session_name
     }
 }

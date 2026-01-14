@@ -4,6 +4,7 @@ use ../lib/utils.nu *
 use ../lib/config.nu *
 use ../lib/git.nu *
 use ../lib/worktrees.nu *
+use ../lib/names.nu *
 use ../lib/zellij.nu *
 
 # Remove a workbench: kill session, remove worktree, optionally delete branch
@@ -17,7 +18,7 @@ export def main [
     assert-valid-name $name
 
     let repo_root = (get-git-root)
-    let repo_name = (get-repo-name $repo_root)
+    let repo_name = (repo-name $repo_root)
 
     if not (repo-initialized $repo_name) {
         error make --unspanned {
@@ -46,9 +47,9 @@ export def main [
     }
 
     # Kill session if exists
-    if (session-exists $repo_name $name) {
+    if (session-exists $session_name) {
         print $"Killing session: ($session_name)"
-        stop $repo_name $name
+        stop $session_name
     }
 
     # Remove worktree
@@ -57,7 +58,7 @@ export def main [
 
     # Optionally delete branch
     if $branch {
-        let branch_name = (format-branch-name $config.branch_prefix $name)
+        let branch_name = (branch-name $config.branch_prefix $name)
         if (branch-exists $repo_root $branch_name) {
             print $"Deleting branch: ($branch_name)"
             delete-branch $repo_root $branch_name $force

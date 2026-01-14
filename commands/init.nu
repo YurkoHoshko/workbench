@@ -4,6 +4,7 @@ use ../lib/utils.nu *
 use ../lib/config.nu *
 use ../lib/git.nu *
 use ../lib/worktrees.nu *
+use ../lib/names.nu *
 
 # Initialize workbench for current git repository
 export def main [
@@ -15,7 +16,7 @@ export def main [
     assert-deps
 
     let repo_root = (get-git-root)
-    let repo_name = (get-repo-name $repo_root)
+    let repo_name = (repo-name $repo_root)
 
     let global_config = (load-global-config)
     let wb_root = (expand-path $global_config.workbench_root)

@@ -22,11 +22,6 @@ def layout-args [layout_path?: string]: nothing -> list<string> {
     }
 }
 
-# Format session name for zellij (no slashes allowed)
-export def session-name [repo_name: string, wb_name: string]: nothing -> string {
-    $"($repo_name)_($wb_name)"
-}
-
 # List all zellij sessions
 export def list-sessions []: nothing -> list<string> {
     let result = (do { zellij list-sessions -s } | complete)
@@ -36,36 +31,30 @@ export def list-sessions []: nothing -> list<string> {
     $result.stdout | lines | where $it != ""
 }
 
-# List workbench sessions for a repo, returning workbench names
-export def list [repo_name: string]: nothing -> list<string> {
-    let prefix = $"($repo_name)_"
+# List all zellij sessions (normalized API)
+export def list []: nothing -> list<string> {
     list-sessions
-    | where $it =~ $"^($prefix)"
-    | each { $in | str replace $"^($prefix)" "" }
 }
 
 # Check if a session exists
-export def session-exists [repo_name: string, wb_name: string]: nothing -> bool {
-    let session_name = (session-name $repo_name $wb_name)
+export def session-exists [session_name: string]: nothing -> bool {
     $session_name in (list-sessions)
 }
 
 # Start a new session (detached)
 export def start [
-    repo_name: string,
-    wb_name: string,
+    session_name: string,
     cwd: string,
     layout_path?: string,
     env_vars?: record
 ]: nothing -> string {
-    let session = (session-name $repo_name $wb_name)
-    if (session-exists $repo_name $wb_name) {
-        return $wb_name
+    if (session-exists $session_name) {
+        return $session_name
     }
 
-    let cmd_args = (["--session" $session] | append (layout-args $layout_path))
+    let cmd_args = (["--session" $session_name] | append (layout-args $layout_path))
 
-    job spawn --tag $"zellij session ($session)" {
+    job spawn --tag $"zellij session ($session_name)" {
         if $env_vars != null {
             with-env $env_vars {
                 cd $cwd
@@ -79,18 +68,17 @@ export def start [
 
     # Give it a moment to start
     sleep 500ms
-    $wb_name
+    $session_name
 }
 
 # Attach to a session
-export def attach [repo_name: string, wb_name: string]: nothing -> nothing {
-    run-external "zellij" "attach" (session-name $repo_name $wb_name)
+export def attach [session_name: string]: nothing -> nothing {
+    run-external "zellij" "attach" $session_name
 }
 
 # Kill a session
-export def stop [repo_name: string, wb_name: string]: nothing -> nothing {
-    let session = (session-name $repo_name $wb_name)
-    let result = (do { zellij kill-session $session } | complete)
+export def stop [session_name: string]: nothing -> nothing {
+    let result = (do { zellij kill-session $session_name } | complete)
     if $result.exit_code != 0 {
         error make --unspanned {
             msg: $"Failed to kill session: ($result.stderr)"
@@ -99,8 +87,8 @@ export def stop [repo_name: string, wb_name: string]: nothing -> nothing {
 }
 
 # Remove a session (alias for stop)
-export def rm [repo_name: string, wb_name: string]: nothing -> nothing {
-    stop $repo_name $wb_name
+export def rm [session_name: string]: nothing -> nothing {
+    stop $session_name
 }
 
 # Install zellij-switch plugin if missing
@@ -115,14 +103,12 @@ export def install-switch-plugin [plugins_dir: string]: nothing -> string {
 
 # Switch sessions using zellij-switch plugin
 export def switch [
-    repo_name: string,
-    wb_name: string,
+    session_name: string,
     cwd: string,
     layout_path?: string,
     plugin_path: string
 ]: nothing -> nothing {
-    let session = (session-name $repo_name $wb_name)
     let layout_arg = if $layout_path != null { $"--layout ($layout_path)" } else { "" }
-    let pipe_args = $"--session ($session) --cwd ($cwd) ($layout_arg)"
+    let pipe_args = $"--session ($session_name) --cwd ($cwd) ($layout_arg)"
     ^zellij pipe --plugin $plugin_path -- $pipe_args
 }

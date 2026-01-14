@@ -3,6 +3,7 @@
 use ../lib/utils.nu *
 use ../lib/config.nu *
 use ../lib/worktrees.nu *
+use ../lib/names.nu *
 use ../lib/zellij.nu *
 
 # Detect all issues for a repo
@@ -86,10 +87,10 @@ def fix-issue [issue: record, repo_name: string, wb_root: string, repo_root: str
             { success: true, message: $"Pruned worktree ($issue.name)" }
         }
         "orphan_session" => {
-            if (session-exists $repo_name $issue.name) {
-                stop $repo_name $issue.name
-            }
             let session_name = (session-name $repo_name $issue.name)
+            if (session-exists $session_name) {
+                stop $session_name
+            }
             { success: true, message: $"Killed orphan session ($session_name)" }
         }
         _ => {
@@ -106,7 +107,7 @@ export def main [
     assert-deps
     
     let repo_root = (get-git-root)
-    let repo_name = (get-repo-name $repo_root)
+    let repo_name = (repo-name $repo_root)
     let global_config = (load-global-config)
     let wb_root = (expand-path $global_config.workbench_root)
     

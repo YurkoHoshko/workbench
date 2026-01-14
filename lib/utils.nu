@@ -61,11 +61,6 @@ export def get-worktree-path [wb_root: string, repo_name: string, name: string]:
     [$wb_root, $repo_name, $name] | path join
 }
 
-# Format branch name with prefix
-export def format-branch-name [prefix: string, wb_name: string]: nothing -> string {
-    $"($prefix)($wb_name)"
-}
-
 # Normalize base refs like origin/main to avoid ambiguity
 export def normalize-base-ref [base_ref: string]: nothing -> string {
     if ($base_ref | str starts-with "refs/") {
@@ -122,9 +117,4 @@ export def get-git-root []: nothing -> string {
         }
     }
     $result.stdout | str trim
-}
-
-# Get repo name from repo root path
-export def get-repo-name [repo_root: string]: nothing -> string {
-    $repo_root | path basename
 }

@@ -7,10 +7,7 @@
 #   workbench list --interactive
 #   workbench attach ABC-123
 #   workbench rm ABC-123
-#   workbench report
-#   workbench dashboard
 #   workbench doctor
-#   workbench clone <url>
 
 use lib/utils.nu *
 use lib/config.nu *
@@ -21,7 +18,7 @@ export def "workbench init" [
     --layout: string@layout-files  # Layout file to use
     --agent: string@agents         # Agent to use (default: opencode)
     --layouts-dir: string                      # Layouts directory
-    --base-ref: string                         # Base ref for worktrees (default: origin/main)
+    --base-ref: string@branch-names            # Base ref for worktrees (default: origin/main)
 ] {
     use commands/init.nu
     init --layout $layout --agent $agent --layouts-dir $layouts_dir --base-ref $base_ref
@@ -30,7 +27,7 @@ export def "workbench init" [
 # Create a new workbench
 export def "workbench create" [
     name: string                               # Workbench name (e.g., ABC-123)
-    --from: string                             # Override base ref
+    --from: string@branch-names                # Override base ref
     --branch: string                           # Explicit branch name
     --agent: string@agents         # Override agent
     --no-attach                                # Don't attach after creation
@@ -68,23 +65,6 @@ export def "workbench rm" [
     rm $name --branch=$branch --force=$force --yes=$yes
 }
 
-# Generate workbench report
-export def "workbench report" [
-    --name: string@workbench-name   # Workbench name (optional, inferred from CWD)
-    --format: string@report-formats # Output format: md or json (default: md)
-    --output: string                            # Output file path
-] {
-    use commands/report.nu
-    report --name $name --format $format --output $output
-}
-
-# Start/attach dashboard session
-export def "workbench dashboard" [
-] {
-    use commands/dashboard.nu
-    dashboard
-}
-
 # Check for and fix inconsistencies
 export def "workbench doctor" [
     --fix                  # Apply safe fixes
@@ -92,27 +72,6 @@ export def "workbench doctor" [
 ] {
     use commands/doctor.nu
     doctor --fix=$fix --json=$json
-}
-
-# Clone a repository and initialize workbench
-export def "workbench clone" [
-    url: string                                # Git repository URL
-    --name: string                             # Override repo name
-    --layout: string@layout-files  # Layout file to use
-    --agent: string@agents         # Agent to use
-    --base-ref: string                         # Base ref (default: auto-detect)
-    --workbench: string                        # Create initial workbench with this name
-] {
-    use commands/clone.nu
-    clone $url --name $name --layout $layout --agent $agent --base-ref $base_ref --workbench $workbench
-}
-
-# Show current workbench status
-export def "workbench status" [
-    --json (-j)  # Output as JSON
-] {
-    use commands/status.nu
-    status --json=$json
 }
 
 # Create a review workbench for a branch

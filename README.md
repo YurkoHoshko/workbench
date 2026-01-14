@@ -38,12 +38,6 @@ workbench list -i
 # Attach to existing workbench
 workbench attach ABC-123
 
-# View workbench report
-workbench report --name ABC-123
-
-# Open dashboard
-workbench dashboard
-
 # Remove workbench
 workbench rm ABC-123
 
@@ -58,14 +52,10 @@ workbench doctor --fix
 |---------|-------------|
 | `workbench init` | Initialize workbench for current git repo |
 | `workbench create <name>` | Create new worktree + zellij session |
-| `workbench clone <url>` | Clone repo and initialize workbench |
 | `workbench list` | List all workbenches across all repos |
 | `workbench attach [name]` | Attach to session (resurrects if needed) |
 | `workbench rm <name>` | Remove workbench |
-| `workbench report` | Generate workbench report |
-| `workbench dashboard` | Start/attach dashboard session |
 | `workbench doctor` | Detect and fix inconsistencies |
-| `workbench status` | Show current workbench status |
 | `workbench review [branch]` | Create review workbench for a branch |
 | `workbench config` | Open repo/global configuration |
 | `workbench deps` | Show dependency status |
@@ -83,7 +73,6 @@ Tab completions work automatically for:
 - Workbench names (dynamic, based on current repo)
 - Layout files (from `~/.config/zellij/layouts/`)
 - Agents (`opencode`, `amp`, `claude`, `aider`, `cursor`)
-- Report formats (`md`, `json`)
 
 ## Configuration
 
@@ -106,7 +95,6 @@ Tab completions work automatically for:
   "base_ref": "origin/main",
   "agent": "opencode",
   "layout": "phoenix.kdl",
-  "dashboard_layout": "dashboard.kdl",
   "branch_prefix": "wb/"
 }
 ```

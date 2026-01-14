@@ -3,6 +3,7 @@
 use ../lib/utils.nu *
 use ../lib/config.nu *
 use ../lib/worktrees.nu *
+use ../lib/names.nu *
 use ../lib/zellij.nu *
 
 # List workbenches from all initialized repos under workbench_root
@@ -132,15 +133,16 @@ def interactive-list [workbenches: list, wb_root: string]: nothing -> nothing {
         let env_vars = (build-workbench-env $repo_name $wb_name $wt_path $branch $config.base_ref $config.agent)
         let layout_path = (layout-path-if-exists $config.layout $config.layouts_dir)
 
-        if not (session-exists $repo_name $wb_name) {
-            start $repo_name $wb_name $wt_path $layout_path $env_vars
+        let session_name = (session-name $repo_name $wb_name)
+        if not (session-exists $session_name) {
+            start $session_name $wt_path $layout_path $env_vars
         }
 
         if (in-zellij) {
             let plugin_path = (install-switch-plugin (get-zellij-plugin-dir))
-            switch $repo_name $wb_name $wt_path $layout_path $plugin_path
+            switch $session_name $wt_path $layout_path $plugin_path
         } else {
-            attach $repo_name $wb_name
+            attach $session_name
         }
     }
 }

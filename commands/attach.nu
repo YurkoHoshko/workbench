@@ -3,6 +3,7 @@
 use ../lib/utils.nu *
 use ../lib/config.nu *
 use ../lib/worktrees.nu *
+use ../lib/names.nu *
 use ../lib/zellij.nu *
 
 # Infer workbench name from CWD if inside a worktree
@@ -29,7 +30,7 @@ export def main [
     
     # Get repo context
     let git_root = (get-git-root)
-    let repo_name = (get-repo-name $git_root)
+    let repo_name = (repo-name $git_root)
     
     # Check if repo is initialized
     if not (repo-initialized $repo_name) {
@@ -63,7 +64,7 @@ export def main [
             
             # Build fzf input
             let fzf_input = ($workbenches | each {|wb|
-                let status = if (session-exists $repo_name $wb.name) { "●" } else { "○" }
+                let status = if (session-exists (session-name $repo_name $wb.name)) { "●" } else { "○" }
                 $"($status) ($wb.name) ($wb.branch)"
             } | str join "\n")
             
@@ -108,15 +109,16 @@ export def main [
     
     # Attach or resurrect
     let layout_path = (layout-path-if-exists $config.layout $config.layouts_dir)
-    let session_exists = (session-exists $repo_name $wb_name)
+    let session_name = (session-name $repo_name $wb_name)
+    let session_exists = (session-exists $session_name)
     if not $session_exists {
-        start $repo_name $wb_name $wt_path $layout_path $env_vars
+        start $session_name $wt_path $layout_path $env_vars
     }
 
     if (in-zellij) {
         let plugin_path = (install-switch-plugin (get-zellij-plugin-dir))
-        switch $repo_name $wb_name $wt_path $layout_path $plugin_path
+        switch $session_name $wt_path $layout_path $plugin_path
     } else {
-        attach $repo_name $wb_name
+        attach $session_name
     }
 }

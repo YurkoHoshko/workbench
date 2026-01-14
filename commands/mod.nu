@@ -5,6 +5,4 @@ export module create.nu
 export module list.nu
 export module attach.nu
 export module rm.nu
-export module report.nu
-export module dashboard.nu
 export module doctor.nu
