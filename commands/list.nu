@@ -2,7 +2,8 @@
 
 use ../lib/utils.nu *
 use ../lib/config.nu *
-use ../lib/git.nu *
+use ../lib/worktrees.nu *
+use ../lib/names.nu *
 use ../lib/zellij.nu *
 
 # List workbenches from all initialized repos under workbench_root
@@ -25,7 +26,7 @@ export def main [
     
     # Build display table
     let display = ($all_workbenches | each {|wb|
-        let session_name = (format-session-name $wb.repo_name $wb.name)
+        let session_name = (session-name $wb.repo_name $wb.name)
         let status = if ($session_name in $sessions) { "●" } else { "○" }
         {
             status: $status
@@ -129,17 +130,19 @@ def interactive-list [workbenches: list, wb_root: string]: nothing -> nothing {
         let wt_path = (get-worktree-path $wb_root $repo_name $wb_name)
         let wb_info = ($workbenches | where { $in.repo_name == $repo_name and $in.name == $wb_name } | first)
         let branch = $wb_info.branch
-        let session_name = (format-session-name $repo_name $wb_name)
-        
-        let env_vars = {
-            WORKBENCH_REPO: $repo_name
-            WORKBENCH_NAME: $wb_name
-            WORKBENCH_PATH: $wt_path
-            WORKBENCH_BRANCH: $branch
-            WORKBENCH_BASE_REF: $config.base_ref
-            WORKBENCH_AGENT: $config.agent
+        let env_vars = (build-workbench-env $repo_name $wb_name $wt_path $branch $config.base_ref $config.agent)
+        let layout_path = (layout-path-if-exists $config.layout)
+
+        let session_name = (session-name $repo_name $wb_name)
+        if not (session-exists $session_name) {
+            start $session_name $wt_path $layout_path $env_vars
         }
-        
-        ensure-and-attach $session_name $wt_path $config.layout (expand-path $config.layouts_dir) $env_vars
+
+        if (in-zellij) {
+            let plugin_path = ([(get-zellij-plugin-dir), "zellij-switch.wasm"] | path join)
+            switch $session_name $wt_path $layout_path $plugin_path
+        } else {
+            attach $session_name
+        }
     }
 }

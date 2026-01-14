@@ -38,12 +38,6 @@ workbench list -i
 # Attach to existing workbench
 workbench attach ABC-123
 
-# View workbench report
-workbench report --name ABC-123
-
-# Open dashboard
-workbench dashboard
-
 # Remove workbench
 workbench rm ABC-123
 
@@ -58,15 +52,10 @@ workbench doctor --fix
 |---------|-------------|
 | `workbench init` | Initialize workbench for current git repo |
 | `workbench create <name>` | Create new worktree + zellij session |
-| `workbench clone <url>` | Clone repo and initialize workbench |
 | `workbench list` | List all workbenches across all repos |
 | `workbench attach [name]` | Attach to session (resurrects if needed) |
 | `workbench rm <name>` | Remove workbench |
-| `workbench report` | Generate workbench report |
-| `workbench dashboard` | Start/attach dashboard session |
 | `workbench doctor` | Detect and fix inconsistencies |
-| `workbench status` | Show current workbench status |
-| `workbench review [branch]` | Create review workbench for a branch |
 | `workbench config` | Open repo/global configuration |
 | `workbench deps` | Show dependency status |
 
@@ -83,7 +72,6 @@ Tab completions work automatically for:
 - Workbench names (dynamic, based on current repo)
 - Layout files (from `~/.config/zellij/layouts/`)
 - Agents (`opencode`, `amp`, `claude`, `aider`, `cursor`)
-- Report formats (`md`, `json`)
 
 ## Configuration
 
@@ -93,7 +81,6 @@ Tab completions work automatically for:
 {
   "workbench_root": "~/.workbench",
   "agent": "opencode",
-  "layouts_dir": "~/.config/zellij/layouts",
   "layout": "default.kdl"
 }
 ```
@@ -105,9 +92,7 @@ Tab completions work automatically for:
   "repo_root": "/abs/path/to/repo",
   "base_ref": "origin/main",
   "agent": "opencode",
-  "layout": "phoenix.kdl",
-  "dashboard_layout": "dashboard.kdl",
-  "branch_prefix": "wb/"
+  "layout": "phoenix.kdl"
 }
 ```
 
@@ -133,12 +118,6 @@ Sessions are named `<repo-name>_<worktree-name>` (underscore separator). Environ
 - `WORKBENCH_BASE_REF` - base ref
 - `WORKBENCH_AGENT` - agent name
 
-### Workbench-specific layouts
+### Session switching plugin
 
-You can define a custom Zellij layout for a specific workbench by placing a `workbench.kdl` file in the worktree root. When present, it takes precedence over the configured layout.
-
-```
-~/.workbench/<repo>/<worktree>/
-  workbench.kdl    # optional, overrides default layout
-  ...
-```
+`workbench init` installs the `zellij-switch` plugin to `~/.config/zellij/plugins/zellij-switch.wasm` for session switching inside Zellij.

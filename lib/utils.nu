@@ -46,12 +46,6 @@ export def expand-path [path: string]: nothing -> string {
     $path | str replace -r '^~' $env.HOME
 }
 
-# Get workbench root (default ~/.workbench)
-export def get-workbench-root [override?: string]: nothing -> string {
-    let root = if $override != null { $override } else { "~/.workbench" }
-    expand-path $root
-}
-
 # Get global config path
 export def get-global-config-path []: nothing -> string {
     expand-path "~/.config/workbench/config.json"
@@ -67,14 +61,50 @@ export def get-worktree-path [wb_root: string, repo_name: string, name: string]:
     [$wb_root, $repo_name, $name] | path join
 }
 
-# Format session name for zellij (no slashes allowed)
-export def format-session-name [repo_name: string, wb_name: string]: nothing -> string {
-    $"($repo_name)_($wb_name)"
+# Normalize base refs like origin/main to avoid ambiguity
+export def normalize-base-ref [base_ref: string]: nothing -> string {
+    if ($base_ref | str starts-with "refs/") {
+        $base_ref
+    } else if ($base_ref | str starts-with "origin/") {
+        $"refs/remotes/($base_ref)"
+    } else {
+        $base_ref
+    }
 }
 
-# Format branch name with prefix
-export def format-branch-name [prefix: string, wb_name: string]: nothing -> string {
-    $"($prefix)($wb_name)"
+# Build environment variables for workbench sessions
+export def build-workbench-env [
+    repo_name: string,
+    wb_name: string,
+    wt_path: string,
+    branch: string,
+    base_ref: string,
+    agent: string,
+    extra?: record
+]: nothing -> record {
+    let env_vars = {
+        WORKBENCH_REPO: $repo_name
+        WORKBENCH_NAME: $wb_name
+        WORKBENCH_PATH: $wt_path
+        WORKBENCH_BRANCH: $branch
+        WORKBENCH_BASE_REF: $base_ref
+        WORKBENCH_AGENT: $agent
+    }
+    if $extra != null {
+        $env_vars | merge $extra
+    } else {
+        $env_vars
+    }
+}
+
+# Check if running inside zellij
+export def in-zellij []: nothing -> bool {
+    ($env.ZELLIJ? | default "" | str length) > 0
+}
+
+# Default zellij plugin directory
+export def get-zellij-plugin-dir []: nothing -> string {
+    "~/.config/zellij/plugins" | path expand
 }
 
 # Get current git repo root from CWD
@@ -87,9 +117,4 @@ export def get-git-root []: nothing -> string {
         }
     }
     $result.stdout | str trim
-}
-
-# Get repo name from repo root path
-export def get-repo-name [repo_root: string]: nothing -> string {
-    $repo_root | path basename
 }

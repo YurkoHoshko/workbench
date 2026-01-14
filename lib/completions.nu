@@ -1,8 +1,8 @@
 # Shell completions for workbench CLI
 
-use utils.nu [get-git-root, get-repo-name, expand-path]
+use utils.nu [expand-path]
 use config.nu [load-repo-config, repo-initialized]
-use git.nu [list-workbenches]
+use worktrees.nu [list-workbenches]
 
 # Get list of workbench names for current repo
 def get-workbench-names []: nothing -> list<string> {
@@ -46,14 +46,6 @@ export def layout-files [] {
 # Completion for agents
 export def agents [] {
     ["opencode", "amp", "claude", "aider", "cursor"] | each {|a| { value: $a, description: "agent" } }
-}
-
-# Completion for report formats
-export def report-formats [] {
-    [
-        { value: "md", description: "Markdown" }
-        { value: "json", description: "JSON" }
-    ]
 }
 
 # Completion for branch names (local + remote)
