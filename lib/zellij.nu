@@ -135,13 +135,7 @@ export def ensure-and-attach [
         }
 
         # Use zellij-switch plugin to switch sessions from inside zellij
-        let layout_path = (resolve-layout-path $cwd $layout $layouts_dir)
-        let layout_arg = if ($layout_path | path exists) {
-            $"--layout ($layout_path)"
-        } else {
-            ""
-        }
-        let pipe_args = $"--session ($session_name) --cwd ($cwd) ($layout_arg)"
+        let pipe_args = $"--session ($session_name) --cwd ($cwd)"
 
         # Use zellij pipe to invoke zellij-switch plugin
         ^zellij pipe --plugin $ZELLIJ_SWITCH_PLUGIN -- $pipe_args
