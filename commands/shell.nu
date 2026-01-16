@@ -4,7 +4,6 @@
 use ../lib/utils.nu *
 use ../lib/config.nu *
 use ../lib/worktrees.nu *
-use ../lib/git.nu *
 use ../lib/names.nu *
 use ../lib/zellij.nu *
 use ../lib/mru.nu *

@@ -1,5 +1,3 @@
-use utils.nu [normalize-base-ref]
-
 # Delete a local branch
 export def delete-branch [repo_root: string, branch: string, force: bool = false]: nothing -> nothing {
     let flag = if $force { "-D" } else { "-d" }
@@ -9,41 +7,6 @@ export def delete-branch [repo_root: string, branch: string, force: bool = false
             msg: $"Failed to delete branch: ($result.stderr)"
         }
     }
-}
-
-# Get commits ahead/behind base
-export def get-diff-stats [repo_root: string, branch: string, base_ref: string]: nothing -> record<ahead: int, behind: int> {
-    let normalized = (normalize-base-ref $base_ref)
-    let result = (do { git -C $repo_root rev-list --left-right --count $"($normalized)...($branch)" } | complete)
-    if $result.exit_code != 0 {
-        return { ahead: 0, behind: 0 }
-    }
-    
-    let parts = ($result.stdout | str trim | split row "\t")
-    {
-        behind: ($parts | get 0 | into int)
-        ahead: ($parts | get 1 | into int)
-    }
-}
-
-# Get diffstat summary
-export def get-diffstat [repo_root: string, base_ref: string]: nothing -> string {
-    let normalized = (normalize-base-ref $base_ref)
-    let result = (do { git -C $repo_root diff --stat $normalized } | complete)
-    if $result.exit_code != 0 {
-        return ""
-    }
-    $result.stdout | str trim
-}
-
-# Get list of changed files
-export def get-changed-files [repo_root: string, base_ref: string]: nothing -> list<string> {
-    let normalized = (normalize-base-ref $base_ref)
-    let result = (do { git -C $repo_root diff --name-only $normalized } | complete)
-    if $result.exit_code != 0 {
-        return []
-    }
-    $result.stdout | lines | where $it != ""
 }
 
 # Check if branch exists

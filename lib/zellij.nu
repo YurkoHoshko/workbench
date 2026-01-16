@@ -28,11 +28,6 @@ export def list-sessions []: nothing -> list<string> {
     $result.stdout | lines | where $it != ""
 }
 
-# List all zellij sessions (normalized API)
-export def list []: nothing -> list<string> {
-    list-sessions
-}
-
 # Check if a session exists
 export def session-exists [session_name: string]: nothing -> bool {
     $session_name in (list-sessions)
@@ -81,9 +76,4 @@ export def stop [session_name: string]: nothing -> nothing {
             msg: $"Failed to kill session: ($result.stderr)"
         }
     }
-}
-
-# Remove a session (alias for stop)
-export def rm [session_name: string]: nothing -> nothing {
-    stop $session_name
 }
