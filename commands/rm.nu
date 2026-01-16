@@ -9,13 +9,12 @@ use ../lib/zellij.nu *
 
 # Remove a workbench: kill session, remove worktree, optionally delete branch
 export def main [
-    name: string           # Workbench name to remove
-    --branch               # Also delete the local branch
+    branch: string         # Branch name to remove
+    --delete-branch        # Also delete the local branch
     --force                # Force removal (skip safety checks)
     --yes (-y)             # Skip confirmation prompt
 ]: nothing -> nothing {
     assert-deps
-    assert-valid-name $name
 
     let repo_root = (get-git-root)
     let repo_name = (repo-name $repo_root)
@@ -29,17 +28,23 @@ export def main [
 
     let config = (load-repo-config $repo_name)
     let wb_root = (expand-path $config.workbench_root)
-    let wt_path = (get-worktree-path $wb_root $repo_name $name)
-    let session_name = (session-name $repo_name $name)
-
-    if not ($wt_path | path exists) {
+    
+    # Find workbench by branch
+    let workbenches = (list-workbenches $repo_root $wb_root $repo_name)
+    let wb_info = ($workbenches | where branch == $branch | first)
+    
+    if ($wb_info | is-empty) {
         error make --unspanned {
-            msg: $"Workbench '($name)' not found at ($wt_path)"
+            msg: $"Workbench for branch '($branch)' not found"
         }
     }
+    
+    let folder = $wb_info.name
+    let wt_path = $wb_info.path
+    let sess_name = (session-name $branch)
 
     if not $yes {
-        let confirm = (input $"Remove workbench '($name)'? \(y/N\) ")
+        let confirm = (input $"Remove workbench '($branch)'? \(y/N\) ")
         if ($confirm | str downcase) != "y" {
             print "Aborted."
             return
@@ -47,9 +52,9 @@ export def main [
     }
 
     # Kill session if exists
-    if (session-exists $session_name) {
-        print $"Killing session: ($session_name)"
-        stop $session_name
+    if (session-exists $sess_name) {
+        print $"Killing session: ($sess_name)"
+        stop $sess_name
     }
 
     # Remove worktree
@@ -57,14 +62,14 @@ export def main [
     remove-worktree $repo_root $wt_path $force
 
     # Optionally delete branch
-    if $branch {
-        if (branch-exists $repo_root $name) {
-            print $"Deleting branch: ($name)"
-            delete-branch $repo_root $name $force
+    if $delete_branch {
+        if (branch-exists $repo_root $branch) {
+            print $"Deleting branch: ($branch)"
+            delete-branch $repo_root $branch $force
         } else {
-            print $"Branch '($name)' not found, skipping"
+            print $"Branch '($branch)' not found, skipping"
         }
     }
 
-    print $"Workbench '($name)' removed."
+    print $"Workbench '($branch)' removed."
 }

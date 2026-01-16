@@ -24,20 +24,19 @@ export def main [
         []
     }
     
-    # Build display table
+    # Build display table - session name derived from branch
     let display = ($all_workbenches | each {|wb|
-        let session_name = (session-name $wb.repo_name $wb.name)
-        let status = if ($session_name in $sessions) { "●" } else { "○" }
+        let sess_name = (session-name $wb.branch)
+        let status = if ($sess_name in $sessions) { "●" } else { "○" }
         {
             status: $status
-            display_name: $"($wb.repo_name)/($wb.name)"
-            repo_name: $wb.repo_name
-            name: $wb.name
             branch: $wb.branch
+            repo_name: $wb.repo_name
+            folder: $wb.name
             path: $wb.path
             repo_root: $wb.repo_root
-            session: $session_name
-            active: ($session_name in $sessions)
+            session: $sess_name
+            active: ($sess_name in $sessions)
         }
     })
     
@@ -48,8 +47,8 @@ export def main [
     if $interactive {
         interactive-list $display $wb_root
     } else {
-        # Simple table output
-        $display | select status display_name branch | table
+        # Simple table output - show branch as primary identifier
+        $display | select status branch repo_name | table
     }
 }
 
@@ -97,9 +96,9 @@ def interactive-list [workbenches: list, wb_root: string]: nothing -> nothing {
         }
     }
     
-    # Format entries for fzf
+    # Format entries for fzf - branch is the primary identifier
     let entries = ($workbenches | each {|wb|
-        $"($wb.status) ($wb.display_name) ($wb.branch)"
+        $"($wb.status) ($wb.branch) [($wb.repo_name)]"
     } | str join "\n")
     
     if ($entries | str trim) == "" {
@@ -113,36 +112,38 @@ def interactive-list [workbenches: list, wb_root: string]: nothing -> nothing {
     
     # Run fzf with proper tty access
     let selected = (^bash -c $"fzf --ansi --header 'Enter: attach | Esc: cancel' < '($tmpfile)'" | str trim)
-    rm -f $tmpfile
+    ^rm -f $tmpfile
     
     if $selected != "" {
-        # Parse selected entry: "● repo/name branch"
+        # Parse selected entry: "● branch [repo_name]"
         let parts = ($selected | split row " ")
-        let display_name = ($parts | get 1)
-        let name_parts = ($display_name | split row "/")
-        let repo_name = ($name_parts | get 0)
-        let wb_name = ($name_parts | get 1)
+        let branch = ($parts | get 1)
         
-        print $"Attaching to ($display_name)..."
+        # Find matching workbench
+        let wb_info = ($workbenches | where { $in.branch == $branch } | first)
+        let repo_name = $wb_info.repo_name
+        let folder = $wb_info.folder
+        
+        print $"Attaching to ($branch)..."
         
         # Build env vars and attach
         let config = (load-repo-config $repo_name $wb_root)
-        let wt_path = (get-worktree-path $wb_root $repo_name $wb_name)
-        let wb_info = ($workbenches | where { $in.repo_name == $repo_name and $in.name == $wb_name } | first)
-        let branch = $wb_info.branch
-        let env_vars = (build-workbench-env $repo_name $wb_name $wt_path $branch $config.base_ref $config.agent)
+        let wt_path = (get-worktree-path $wb_root $repo_name $folder)
+        let env_vars = (build-workbench-env $repo_name $folder $wt_path $branch $config.base_ref $config.agent)
         let layout_path = (layout-path-if-exists $config.layout)
 
-        let session_name = (session-name $repo_name $wb_name)
-        if not (session-exists $session_name) {
-            start $session_name $wt_path $layout_path $env_vars
+        let sess_name = (session-name $branch)
+        if not (session-exists $sess_name) {
+            start $sess_name $wt_path $layout_path $env_vars
         }
 
         if (in-zellij) {
-            let plugin_path = ([(get-zellij-plugin-dir), "zellij-switch.wasm"] | path join)
-            switch $session_name $wt_path $layout_path $plugin_path
-        } else {
-            attach $session_name
+            error make --unspanned {
+                msg: "Cannot attach from inside zellij"
+                help: "Use 'workbench shell' from outside zellij, or detach first (Ctrl+O d)"
+            }
         }
+        
+        attach $sess_name
     }
 }

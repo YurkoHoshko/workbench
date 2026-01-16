@@ -7,3 +7,4 @@ export module worktrees.nu
 export module names.nu
 export module zellij.nu
 export module completions.nu
+export module mru.nu

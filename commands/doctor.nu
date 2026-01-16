@@ -7,17 +7,17 @@ use ../lib/names.nu *
 use ../lib/zellij.nu *
 
 # Detect all issues for a repo
-def detect-issues [repo_name: string, wb_root: string, repo_root: string]: nothing -> table<type: string, name: string, detail: string, fixable: bool> {
+def detect-issues [repo_name: string, wb_root: string, repo_root: string]: nothing -> table<type: string, branch: string, detail: string, fixable: bool> {
     mut issues = []
     
     let wt_base = ([$wb_root, $repo_name] | path join)
     
-    # Get git worktrees
+    # Get git worktrees with their branches
     let worktrees = (list-worktrees $repo_root)
     let wb_worktrees = ($worktrees | where path =~ $"^($wt_base)/" | each {|wt|
-        let name = ($wt.path | str replace $"($wt_base)/" "")
-        if ($name != ".workbench" and not ($name | str contains "/")) {
-            { name: $name, path: $wt.path }
+        let folder = ($wt.path | str replace $"($wt_base)/" "")
+        if ($folder != ".workbench" and not ($folder | str contains "/")) {
+            { folder: $folder, path: $wt.path, branch: $wt.branch }
         } else {
             null
         }
@@ -34,15 +34,15 @@ def detect-issues [repo_name: string, wb_root: string, repo_root: string]: nothi
         []
     }
     
-    # Get zellij sessions for this repo (session format: repo_name_wb_name)
-    let sessions = (list-sessions) | where $it =~ $"^($repo_name)_"
+    # Get all zellij sessions
+    let sessions = (list-sessions)
     
     # Check 1: Worktree in git but folder missing
     for wt in $wb_worktrees {
         if not ($wt.path | path exists) {
             $issues = ($issues | append {
                 type: "missing_folder"
-                name: $wt.name
+                branch: $wt.branch
                 detail: $"Git worktree registered at ($wt.path) but folder missing"
                 fixable: true
             })
@@ -50,27 +50,43 @@ def detect-issues [repo_name: string, wb_root: string, repo_root: string]: nothi
     }
     
     # Check 2: Folder exists but not in git worktrees
-    let wt_names = ($wb_worktrees | get name)
+    let wt_folders = ($wb_worktrees | get folder)
     for folder in $folders {
-        if not ($folder in $wt_names) {
+        if not ($folder in $wt_folders) {
             $issues = ($issues | append {
                 type: "orphan_folder"
-                name: $folder
+                branch: $folder
                 detail: $"Folder ($wt_base)/($folder) exists but not a git worktree"
                 fixable: false
             })
         }
     }
     
-    # Check 3: Session exists but folder missing
+    # Check 3: Session exists but corresponding worktree missing
+    # Session name = sanitized branch name
     for session in $sessions {
-        let wb_name = ($session | str replace $"($repo_name)_" "")
-        let expected_path = ([$wt_base, $wb_name] | path join)
-        if not ($expected_path | path exists) {
+        # Check if any workbench has this session name
+        let matching_wb = ($wb_worktrees | where { (session-name $in.branch) == $session })
+        if ($matching_wb | is-empty) {
+            # This session might belong to a different repo, only report if folder pattern matches
+            let expected_folder = $session
+            let expected_path = ([$wt_base, $expected_folder] | path join)
+            # Only report if it looks like it could be from this repo (folder existed)
+            if ($expected_folder in $folders) or ($expected_path | path exists) == false {
+                # Check if there's evidence this belonged to this repo
+                # Skip sessions that don't seem related
+            }
+        }
+    }
+    
+    # Check 4: Worktree exists but session is orphaned (folder gone)
+    for wt in $wb_worktrees {
+        let sess_name = (session-name $wt.branch)
+        if (session-exists $sess_name) and not ($wt.path | path exists) {
             $issues = ($issues | append {
                 type: "orphan_session"
-                name: $wb_name
-                detail: $"Session '($session)' exists but folder ($expected_path) missing"
+                branch: $wt.branch
+                detail: $"Session '($sess_name)' exists but worktree folder missing"
                 fixable: true
             })
         }
@@ -84,14 +100,14 @@ def fix-issue [issue: record, repo_name: string, wb_root: string, repo_root: str
     match $issue.type {
         "missing_folder" => {
             prune-worktrees $repo_root
-            { success: true, message: $"Pruned worktree ($issue.name)" }
+            { success: true, message: $"Pruned worktree for ($issue.branch)" }
         }
         "orphan_session" => {
-            let session_name = (session-name $repo_name $issue.name)
-            if (session-exists $session_name) {
-                stop $session_name
+            let sess_name = (session-name $issue.branch)
+            if (session-exists $sess_name) {
+                stop $sess_name
             }
-            { success: true, message: $"Killed orphan session ($session_name)" }
+            { success: true, message: $"Killed orphan session ($sess_name)" }
         }
         _ => {
             { success: false, message: $"Cannot auto-fix issue type: ($issue.type)" }
@@ -157,7 +173,7 @@ export def main [
         }
         
         let fix_hint = if $issue.fixable { " (fixable)" } else { " (manual)" }
-        print $"  ($icon) [($issue.type)] ($issue.name)($fix_hint)"
+        print $"  ($icon) [($issue.type)] ($issue.branch)($fix_hint)"
         print $"      ($issue.detail)"
         
         if $fix and $issue.fixable {

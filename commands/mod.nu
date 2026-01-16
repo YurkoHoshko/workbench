@@ -6,3 +6,4 @@ export module list.nu
 export module attach.nu
 export module rm.nu
 export module doctor.nu
+export module shell.nu

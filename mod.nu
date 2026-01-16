@@ -3,10 +3,11 @@
 # Usage:
 #   use /path/to/workbench/mod.nu *
 #   workbench init
-#   workbench create ABC-123
+#   workbench create feature/ABC-123
 #   workbench list --interactive
-#   workbench attach ABC-123
-#   workbench rm ABC-123
+#   workbench attach feature/ABC-123
+#   workbench rm feature/ABC-123
+#   workbench shell
 #   workbench doctor
 
 use lib/utils.nu *
@@ -23,17 +24,16 @@ export def "workbench init" [
     init --layout $layout --agent $agent --base-ref $base_ref
 }
 
-# Create a new workbench
+# Create a new workbench (branch name is the primary identifier)
 export def "workbench create" [
-    name: string                               # Workbench name (e.g., ABC-123)
+    branch: string@branch-names                # Branch name (e.g., feature/ABC-123)
     --from: string@branch-names                # Override base ref
-    --branch: string@branch-names              # Explicit branch name
-    --agent: string@agents         # Override agent
+    --agent: string@agents                     # Override agent
     --no-attach                                # Don't attach after creation
     --no-session                               # Don't create zellij session
 ] {
     use commands/create.nu
-    create $name --from $from --branch $branch --agent $agent --no-attach=$no_attach --no-session=$no_session
+    create $branch --from $from --agent $agent --no-attach=$no_attach --no-session=$no_session
 }
 
 # List workbenches
@@ -45,23 +45,23 @@ export def "workbench list" [
     list --interactive=$interactive --json=$json
 }
 
-# Attach to a workbench session
+# Attach to a workbench session (by branch name)
 export def "workbench attach" [
-    name?: string@workbench-name  # Workbench name (optional, inferred from CWD)
+    branch?: string@workbench-branch  # Branch name (optional, inferred from CWD)
 ] {
     use commands/attach.nu
-    attach $name
+    attach $branch
 }
 
-# Remove a workbench
+# Remove a workbench (by branch name)
 export def "workbench rm" [
-    name: string@workbench-name  # Workbench name to remove
-    --branch                                 # Also delete the branch
-    --force                                  # Force removal
-    --yes (-y)                               # Skip confirmation
+    branch: string@workbench-branch  # Branch name to remove
+    --delete-branch                  # Also delete the local branch
+    --force                          # Force removal
+    --yes (-y)                       # Skip confirmation
 ] {
     use commands/rm.nu
-    rm $name --branch=$branch --force=$force --yes=$yes
+    rm $branch --delete-branch=$delete_branch --force=$force --yes=$yes
 }
 
 # Check for and fix inconsistencies
@@ -85,4 +85,13 @@ export def "workbench config" [
 # Show dependency status
 export def "workbench deps" [] {
     check-deps | table
+}
+
+# Interactive session picker shell
+# Run this as your terminal "home base" - detach returns you here
+export def "workbench shell" [
+    --debug (-d)  # Enable debug logging
+] {
+    use commands/shell.nu
+    shell --debug=$debug
 }

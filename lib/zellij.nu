@@ -1,8 +1,5 @@
 # Zellij session management for workbench CLI
 
-# zellij-switch plugin URL for switching sessions from inside zellij
-const ZELLIJ_SWITCH_PLUGIN_URL = "https://github.com/mostafaqanbaryan/zellij-switch/releases/download/0.2.1/zellij-switch.wasm"
-
 def supports-new-session-with-layout []: nothing -> bool {
     let result = (do { zellij --help } | complete)
     if $result.exit_code != 0 {
@@ -73,7 +70,7 @@ export def start [
 
 # Attach to a session
 export def attach [session_name: string]: nothing -> nothing {
-    run-external "zellij" "attach" $session_name
+    ^zellij attach $session_name
 }
 
 # Kill a session
@@ -89,26 +86,4 @@ export def stop [session_name: string]: nothing -> nothing {
 # Remove a session (alias for stop)
 export def rm [session_name: string]: nothing -> nothing {
     stop $session_name
-}
-
-# Install zellij-switch plugin if missing
-export def install-switch-plugin [plugins_dir: string]: nothing -> string {
-    let plugin_path = ([$plugins_dir, "zellij-switch.wasm"] | path join)
-    if not ($plugin_path | path exists) {
-        mkdir $plugins_dir
-        http get $ZELLIJ_SWITCH_PLUGIN_URL | save -f $plugin_path
-    }
-    $plugin_path
-}
-
-# Switch sessions using zellij-switch plugin
-export def switch [
-    session_name: string,
-    cwd: string,
-    layout_path?: string,
-    plugin_path: string
-]: nothing -> nothing {
-    let layout_arg = if $layout_path != null { $"--layout ($layout_path)" } else { "" }
-    let pipe_args = $"--session ($session_name) --cwd ($cwd) ($layout_arg)"
-    ^zellij pipe --plugin $plugin_path -- $pipe_args
 }

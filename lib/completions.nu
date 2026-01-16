@@ -4,8 +4,8 @@ use utils.nu [expand-path]
 use config.nu [load-repo-config, repo-initialized]
 use worktrees.nu [list-workbenches]
 
-# Get list of workbench names for current repo
-def get-workbench-names []: nothing -> list<string> {
+# Get list of workbench branches for current repo
+def get-workbench-branches []: nothing -> list<string> {
     let repo_root = (do { git rev-parse --show-toplevel } | complete)
     if $repo_root.exit_code != 0 {
         return []
@@ -22,12 +22,12 @@ def get-workbench-names []: nothing -> list<string> {
     let wb_root = (expand-path $config.workbench_root)
     
     let workbenches = (list-workbenches $root $wb_root $repo_name)
-    $workbenches | get name
+    $workbenches | get branch
 }
 
-# Completion for workbench names
-export def workbench-name [] {
-    get-workbench-names | each {|name| { value: $name, description: "workbench" } }
+# Completion for workbench branches
+export def workbench-branch [] {
+    get-workbench-branches | each {|branch| { value: $branch, description: "workbench" } }
 }
 
 # Completion for layout files

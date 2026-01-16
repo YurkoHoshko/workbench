@@ -26,21 +26,6 @@ export def assert-deps []: nothing -> nothing {
     }
 }
 
-# Validate workbench name (filesystem safe)
-export def validate-name [name: string]: nothing -> bool {
-    $name =~ '^[A-Za-z0-9._-]+$'
-}
-
-# Assert workbench name is valid
-export def assert-valid-name [name: string]: nothing -> nothing {
-    if not (validate-name $name) {
-        error make --unspanned {
-            msg: $"Invalid workbench name: '($name)'"
-            help: "Name must match [A-Za-z0-9._-]+ (no slashes or special characters)"
-        }
-    }
-}
-
 # Expand ~ to home directory
 export def expand-path [path: string]: nothing -> string {
     $path | str replace -r '^~' $env.HOME
@@ -56,9 +41,9 @@ export def get-repo-config-path [wb_root: string, repo_name: string]: nothing ->
     [$wb_root, $repo_name, ".workbench", "config.json"] | path join
 }
 
-# Get worktree path for a workbench
-export def get-worktree-path [wb_root: string, repo_name: string, name: string]: nothing -> string {
-    [$wb_root, $repo_name, $name] | path join
+# Get worktree path for a workbench (name should already be sanitized/folder-safe)
+export def get-worktree-path [wb_root: string, repo_name: string, folder: string]: nothing -> string {
+    [$wb_root, $repo_name, $folder] | path join
 }
 
 # Normalize base refs like origin/main to avoid ambiguity
@@ -100,11 +85,6 @@ export def build-workbench-env [
 # Check if running inside zellij
 export def in-zellij []: nothing -> bool {
     ($env.ZELLIJ? | default "" | str length) > 0
-}
-
-# Default zellij plugin directory
-export def get-zellij-plugin-dir []: nothing -> string {
-    "~/.config/zellij/plugins" | path expand
 }
 
 # Get current git repo root from CWD

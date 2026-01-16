@@ -72,8 +72,5 @@ export def main [
     save-repo-config $repo_name $repo_config $wb_root
     print $"Saved repo config to ($workbench_dir)/config.json"
 
-    install-switch-plugin (get-zellij-plugin-dir)
-
-
     print $"Workbench initialized for ($repo_name)"
 }
