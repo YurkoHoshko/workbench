@@ -59,7 +59,7 @@ export def list-workbenches [
     | compact
 }
 
-# Add a new worktree with a new branch
+# Add a new worktree - creates branch if it doesn't exist, uses existing if it does
 export def add-worktree [
     repo_root: string,
     path: string,
@@ -67,7 +67,18 @@ export def add-worktree [
     base_ref: string
 ]: nothing -> nothing {
     let normalized = (normalize-base-ref $base_ref)
-    let result = (do { git -C $repo_root worktree add -b $branch $path $normalized } | complete)
+    
+    # Check if branch already exists
+    let branch_check = (do { git -C $repo_root rev-parse --verify $"refs/heads/($branch)" } | complete)
+    
+    let result = if $branch_check.exit_code == 0 {
+        # Branch exists - use it directly
+        do { git -C $repo_root worktree add $path $branch } | complete
+    } else {
+        # Branch doesn't exist - create it from base_ref
+        do { git -C $repo_root worktree add -b $branch $path $normalized } | complete
+    }
+    
     if $result.exit_code != 0 {
         error make --unspanned {
             msg: $"Failed to create worktree: ($result.stderr)"

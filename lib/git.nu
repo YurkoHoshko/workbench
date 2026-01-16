@@ -54,7 +54,7 @@ export def branch-exists [repo_root: string, branch: string]: nothing -> bool {
 
 # Detect default remote branch (origin/main or origin/master)
 export def detect-default-branch [repo_root: string]: nothing -> string {
-    # Try symbolic-ref first
+    # Try symbolic-ref first (most reliable)
     let remote_head = (do { git -C $repo_root symbolic-ref refs/remotes/origin/HEAD } | complete)
     if $remote_head.exit_code == 0 {
         return ($remote_head.stdout | str trim | str replace "refs/remotes/" "")
@@ -66,6 +66,21 @@ export def detect-default-branch [repo_root: string]: nothing -> string {
         return "origin/main"
     }
     
-    # Fallback: origin/master
-    "origin/master"
+    # Fallback: check if origin/master exists
+    let has_master = (do { git -C $repo_root rev-parse --verify origin/master } | complete)
+    if $has_master.exit_code == 0 {
+        return "origin/master"
+    }
+    
+    # Last resort: try to find any remote branch
+    let branches = (do { git -C $repo_root branch -r --format='%(refname:short)' } | complete)
+    if $branches.exit_code == 0 {
+        let first_branch = ($branches.stdout | lines | where { $in != "" and not ($in | str contains "HEAD") } | first)
+        if $first_branch != null {
+            return $first_branch
+        }
+    }
+    
+    # Give up - return main and let it fail with clear error
+    "origin/main"
 }

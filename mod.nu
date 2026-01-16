@@ -2,17 +2,25 @@
 #
 # Usage:
 #   use /path/to/workbench/mod.nu *
+#   workbench              # interactive shell (default)
 #   workbench init
 #   workbench create feature/ABC-123
-#   workbench list --interactive
+#   workbench list
 #   workbench attach feature/ABC-123
 #   workbench rm feature/ABC-123
-#   workbench shell
 #   workbench doctor
 
 use lib/utils.nu *
 use lib/config.nu *
 use lib/completions.nu *
+
+# Interactive workbench shell (default command)
+export def workbench [
+    --debug (-d)  # Enable debug logging
+] {
+    use commands/shell.nu
+    shell --debug=$debug
+}
 
 # Initialize workbench for current git repository
 export def "workbench init" [
